@@ -1,0 +1,24 @@
+{
+  "name": "buffboost",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Gamified payment gateway simulator",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run start:dev --workspace=packages/backend",
+    "dev:frontend": "npm run dev --workspace=packages/frontend",
+    "build": "npm run build --workspaces",
+    "docker:dev": "docker-compose up",
+    "docker:build": "docker-compose build",
+    "test": "npm test --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "keywords": ["payment", "gateway", "nestjs", "nextjs", "docker"],
+  "author": "Philip Mathew",
+  "license": "MIT"
+}
