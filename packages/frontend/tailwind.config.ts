@@ -36,8 +36,9 @@ const config: Config = {
         SoftBackground: "#E0AAFF",
       },
       fontFamily: {
-        dmSans: ['var(--font-dm-sans)'],
-        quickSand: ['var(--font-quicksand)'],
+        spaceGrotesk: ['var(--font-space-grotesk)'],
+        inter: ['var(--font-inter)'],
+        oxanium: ['var(--font-oxanium)'],
       },
     },
   },
