@@ -1,0 +1,33 @@
+import React, { ReactNode } from "react";
+import { motion } from "framer-motion";
+
+interface props {
+  clickEvent: () => void;
+  children?: ReactNode;
+}
+
+const Overlay = ({ children, clickEvent }: props) => {
+  //Variants
+  const overlayVariants = {
+    hidden: {
+      opacity: 0,
+    },
+    show: {
+      opacity: 1,
+    },
+  };
+
+  return (
+    <motion.div
+    onClick={clickEvent}
+      variants={overlayVariants}
+      initial="hidden"
+      animate="show"
+      className="fixed z-50 left-0 top-0 w-screen phone:h-[100%] laptop:h-screen bg-black/[.54] flex laptop:items-center"
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+export default Overlay;
