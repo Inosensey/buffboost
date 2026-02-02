@@ -27,6 +27,7 @@
       "@/css/*": ["css/*"],
       "@/types/*": ["types/*"],
       "@/actions/*": ["actions/*"],
+      "@/constants/*": ["constants/*"],
       "@/lib/*": ["lib/*"]
     }
   },
