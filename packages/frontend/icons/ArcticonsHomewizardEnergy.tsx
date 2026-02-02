@@ -1,0 +1,29 @@
+import React, { SVGProps } from "react";
+
+type ArcticonsHomewizardEnergyProps = SVGProps<SVGSVGElement> & {
+  color: string;
+  width?: string;
+  height?: string;
+};
+
+export function ArcticonsHomewizardEnergy(props: ArcticonsHomewizardEnergyProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={props.width ? props.width : "1em"}
+      height={props.height ? props.height : "1em"}
+      viewBox="0 0 48 48"
+      {...props}
+    >
+      {/* Icon from Arcticons by Donnnno - https://creativecommons.org/licenses/by-sa/4.0/ */}
+      <path
+        fill="none"
+        stroke={props.color}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M26.92 38.382h10.218m-5.108-5.109V43.49m-19.692.01L37.14 18.698H25.76L36.903 4.5H24.33c-1.25 0-2.405.667-3.03 1.75L10.86 24.333h8.94z"
+      />
+    </svg>
+  );
+}
+export default ArcticonsHomewizardEnergy;
