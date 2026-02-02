@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${inter.variable} ${oxanium.variable} antialiased`}
+        className={`${spaceGrotesk.variable} ${inter.variable} ${oxanium.variable} antialiased max-w-[1920px] mx-auto`}
       >
         {children}
       </body>
