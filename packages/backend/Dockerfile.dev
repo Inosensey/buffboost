@@ -1,0 +1,25 @@
+# packages/backend/Dockerfile.dev
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/backend/package*.json ./packages/backend/
+
+# Install dependencies
+RUN npm install --workspace=packages/backend
+
+# Install NestJS CLI globally for hot reload
+RUN npm install -g @nestjs/cli
+
+# Copy Prisma schema
+COPY packages/backend/prisma ./packages/backend/prisma
+
+# Generate Prisma client
+RUN npx prisma generate --schema=./packages/backend/prisma/schema.prisma
+
+EXPOSE 3001
+
+# Default command (will be overridden by docker-compose)
+CMD ["npm", "run", "start:dev", "--workspace=packages/backend"]
