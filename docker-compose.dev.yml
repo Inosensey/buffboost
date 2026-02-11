@@ -11,9 +11,9 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://neondb_owner:npg_L9cTwHXlMGP1@ep-flat-waterfall-a15odvz7-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-      - JWT_SECRET=pS|Yd$caqXP/]P@>P4r}733mV@P)dJ=HhqHYE%G@@Fd
-      - STRIPE_SECRET_KEY=sk_test_51SxGw2AbPDgDak9i1O06vdiP21DJk3p1OjqiZUENoGTBIaPzbLPB4iFYRFKNJ0jSG3TKClSb0Py4OHYjzsGGYqe900caT2Neu6
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
     volumes:
       - ./packages/backend:/app/packages/backend
       - /app/node_modules
