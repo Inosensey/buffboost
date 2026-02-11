@@ -6,18 +6,21 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   weight: ["400", "500", "600", "700"],
   style: ["normal"],
+  subsets: ["latin", "latin-ext", "vietnamese"]
 });
 
 const inter = Inter({
   variable: "--font-inter",
   weight: ["400", "500", "600", "700"],
   style: ["normal"],
+  subsets: ["cyrillic", "cyrillic-ext", "greek", "greek-ext", "latin", "latin-ext", "vietnamese"]
 });
 
 const oxanium = Oxanium({
   variable: "--font-oxanium",
   weight: ["400", "500", "600", "700"],
   style: ["normal"],
+  subsets: ["latin", "latin-ext"]
 });
 
 
