@@ -153,3 +153,37 @@ export class verifyPaymentDTO {
   @Transform(({ value }) => String(value.trim()))
   sessionId: string;
 }
+
+export class recordPurchasedDTO {
+  @IsNotEmpty({ message: 'User ID is required' })
+  @IsString({ message: 'User ID must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  userId: string;
+
+  @IsNotEmpty({ message: 'Buff ID is required' })
+  @IsString({ message: 'Buff ID must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  buffId: string;
+}
+
+export class activatePurchasedDTO {
+  @IsNotEmpty({ message: 'User ID is required' })
+  @IsString({ message: 'User ID must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  userId: string;
+
+  @IsNotEmpty({ message: 'Buff ID is required' })
+  @IsString({ message: 'Buff ID must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  buffId: string;
+
+  @IsNotEmpty({ message: 'Subscription ID is required' })
+  @IsString({ message: 'Subscription ID must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  subscriptionId: string;
+
+  @IsNotEmpty({ message: 'Expire Date is required' })
+  @IsString({ message: 'Expire Date must be a string' })
+  @Transform(({ value }) => String(value.trim()))
+  expiresAt: string;
+}
