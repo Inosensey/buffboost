@@ -97,3 +97,47 @@ export type PurchasedBuffSelectedPayload = Prisma.PurchasedBuffGetPayload<{
     };
   };
 }>;
+
+export type BuffSubscriptionSelectedPayload =
+  Prisma.BuffSubscriptionGetPayload<{
+    select: {
+      id: true;
+      stripeSubscriptionId: true;
+      stripeCustomerId: true;
+      stripePriceId: true;
+      status: true;
+      currentPeriodStart: true;
+      currentPeriodEnd: true;
+      cancelAtPeriodEnd: true;
+      lastPaymentDate: true;
+      nextPaymentDate: true;
+      lastPaymentError: true;
+      failedAttempts: true;
+      createdAt: true;
+      updatedAt: true;
+      canceledAt: true;
+      buff: {
+        select: {
+          id: true;
+          name: true;
+          emoji: true;
+          type: true;
+          description: true;
+          tagline: true;
+          price: true;
+          category: true;
+        };
+      };
+      user: {
+        select: {
+          id: true;
+          firstName: true;
+          lastName: true;
+          username: true;
+          email: true;
+          totalPurchases: true;
+          activeBuffs: true;
+        };
+      };
+    };
+  }>;
