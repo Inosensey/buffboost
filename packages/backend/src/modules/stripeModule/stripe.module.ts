@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
+import { BuffService } from '../buffModule/buff.service';
 
 @Global()
 @Module({
@@ -11,6 +12,7 @@ import { StripeController } from './stripe.controller';
   controllers: [StripeController],
   providers: [
     StripeService,
+    BuffService,
     {
       provide: 'STRIPE_CLIENT',
       useFactory: (configService: ConfigService) => {
@@ -19,6 +21,6 @@ import { StripeController } from './stripe.controller';
       inject: [ConfigService],
     },
   ],
-  exports: [StripeService, 'STRIPE_CLIENT'],
+  exports: [StripeService, BuffService, 'STRIPE_CLIENT'],
 })
 export class StripeModule {}
