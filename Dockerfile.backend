@@ -1,0 +1,41 @@
+# packages/backend/Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/backend/package*.json ./packages/backend/
+
+# Install ALL dependencies
+RUN npm install --workspace=packages/backend
+
+# Copy backend source
+COPY packages/backend ./packages/backend
+
+# Generate Prisma client
+RUN npx prisma generate --schema=./packages/backend/prisma/schema.prisma
+
+# Build backend
+RUN npm run build --workspace=packages/backend
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files for production install
+COPY package*.json ./
+COPY packages/backend/package*.json ./packages/backend/
+
+# Install production dependencies only
+RUN npm ci --only=production --workspace=packages/backend
+
+# Copy built app and Prisma client
+COPY --from=builder /app/packages/backend/dist ./dist
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+EXPOSE 3001
+
+CMD ["node", "dist/src/main.js"]

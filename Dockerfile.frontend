@@ -1,0 +1,33 @@
+# packages/frontend/Dockerfile
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/frontend/package*.json ./packages/frontend/
+
+# Install dependencies
+RUN npm install --workspace=packages/frontend
+
+# Copy frontend source
+COPY packages/frontend ./packages/frontend
+
+# Build frontend
+RUN npm run build --workspace=packages/frontend
+
+# Production stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/packages/frontend/.next/standalone ./
+COPY --from=builder /app/packages/frontend/.next ./packages/frontend/.next
+COPY --from=builder /app/packages/frontend/public ./packages/frontend/public
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+CMD ["node", "packages/frontend/server.js"]

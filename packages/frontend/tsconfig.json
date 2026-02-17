@@ -18,8 +18,17 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["/*"],
+      "@/public": ["public/*"],
+      "@/components/*": ["components/*"],
+      "@/icons/*": ["icons/*"],
+      "@/css/*": ["css/*"],
+      "@/types/*": ["types/*"],
+      "@/actions/*": ["actions/*"],
+      "@/constants/*": ["constants/*"],
+      "@/lib/*": ["lib/*"]
     }
   },
   "include": [
@@ -28,7 +37,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "tailwind.config.js"
   ],
   "exclude": ["node_modules"]
 }

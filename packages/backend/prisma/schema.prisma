@@ -1,0 +1,303 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserType {
+  id              String         @id @default(uuid())
+  typeName        String         @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  users           User[]  
+}
+
+model User {
+  id              String         @id @default(uuid())
+  userTypeId      String         @map("user_type_id")
+  firstName       String         @map("first_name")
+  lastName        String         @map("last_name")
+  username        String         @unique
+  email           String         @unique
+  password        String
+
+  totalPurchases  Int            @default(0) @map("total_purchases")
+  activeBuffs     Int            @default(0) @map("active_buffs")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("update_at")
+
+  userType        UserType       @relation(fields: [userTypeId], references: [id])
+
+  sessions        Session[]
+  purchasedBuffs  PurchasedBuff[]
+  activeBuffsList ActiveBuff[]
+  deliveries      Delivery[]
+  buffSubscriptions BuffSubscription[]
+  
+  @@map("users")
+}
+
+model Session {
+  id              String         @id @default(uuid())
+  userId          String         @map("user_id")
+  token           String         @unique
+
+  expiresAt       DateTime       @map("expires_at")
+  isValid         Boolean        @default(true) @map("is_valid")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user            User           @relation(fields: [userId], references: [id])
+  
+  @@map("sessions")
+  
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isValid])
+}
+
+
+model Buff {
+  id              String         @id @default(uuid())
+  name            String         @unique
+  emoji           String
+  type            String
+  description     String
+  tagline         String
+  
+  price           Int            @default(0) 
+  category        BuffCategory   @default(INSTANT)
+  durationHours   Int            @map("duration_hours") @default(24)
+  isRecurring     Boolean        @default(false) @map("is_recurring")
+  recurrence      Recurrence?    @default(DAILY)
+
+  stripeProductId String         @default("") @map("stripe_product_id")
+  stripePriceId   String         @default("") @map("stripe_price_id")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  purchases       PurchasedBuff[]
+  buffSubscriptions BuffSubscription[]
+  activeInstances ActiveBuff[]
+  deliveries      Delivery[]
+  
+  @@map("buffs")
+  
+  @@index([category])
+  @@index([isRecurring])
+}
+
+model PurchasedBuff {
+  id              String         @id @default(uuid())
+  userId          String         @map("user_id")
+  buffId          String         @map("buff_id")
+
+  paymentId       String?        @unique @map("payment_id")
+  amount          Int?
+  currency        String?        @default("usd")
+  gateway         String
+  status          PaymentStatus  @default(COMPLETED)
+  failureReason   String         @map("failure_reason")
+
+  startDate       DateTime?      @map("start_date") @default(now())
+  endDate         DateTime?      @map("end_date")
+  isActive        Boolean        @default(true) @map("is_active")
+
+  recurrenceCount Int            @default(0) @map("recurrence_count")
+  nextDeliveryAt  DateTime?      @map("next_delivery_at")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user            User           @relation(fields: [userId], references: [id])
+  buff            Buff           @relation(fields: [buffId], references: [id])
+  deliveries      Delivery[]
+  activities      ActiveBuff[]
+  
+  @@map("purchased_buffs")
+  
+  @@index([userId])
+  @@index([buffId])
+  @@index([status])
+  @@index([isActive])
+  @@index([nextDeliveryAt])
+}
+
+model ActiveBuff {
+  id              String         @id @default(uuid())
+  userId          String         @map("user_id")
+  buffId          String         @map("buff_id")
+  purchaseId      String         @map("purchase_id")
+
+  activatedAt     DateTime       @default(now()) @map("activated_at")
+  expiresAt       DateTime       @map("expires_at")
+  isExpired       Boolean        @default(false) @map("is_expired")
+
+  nextDeliveryAt  DateTime?      @map("next_delivery_at")
+  deliveryCount   Int            @default(0) @map("delivery_count")
+
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  user            User           @relation(fields: [userId], references: [id])
+  buff            Buff           @relation(fields: [buffId], references: [id])
+  purchase        PurchasedBuff  @relation(fields: [purchaseId], references: [id])
+
+  @@map("active_buffs")
+  
+  @@index([userId])
+  @@index([buffId])
+  @@index([expiresAt])
+  @@index([isExpired])
+  @@unique([userId, buffId])
+}
+
+model BuffSubscription {
+  id              String               @id @default(uuid())
+  userId          String               @map("user_id")
+  buffId          String               @map("buff_id")
+  
+  // Stripe related
+  stripeSubscriptionId String?         @unique @map("stripe_subscription_id")
+  stripeCustomerId    String?          @map("stripe_customer_id")
+  stripePriceId       String?          @map("stripe_price_id")
+  
+  // Subscription details
+  status          SubscriptionStatus   @default(ACTIVE)
+  currentPeriodStart DateTime          @map("current_period_start")
+  currentPeriodEnd   DateTime          @map("current_period_end")
+  cancelAtPeriodEnd  Boolean           @default(false) @map("cancel_at_period_end")
+  
+  // Payment tracking
+  lastPaymentDate DateTime?            @map("last_payment_date")
+  nextPaymentDate DateTime?            @map("next_payment_date")
+  lastPaymentError String?             @map("last_payment_error")
+  failedAttempts  Int                  @default(0) @map("failed_attempts")
+  
+  // Metadata
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  canceledAt      DateTime?           @map("canceled_at")
+  
+  // Relations
+  user            User                @relation(fields: [userId], references: [id])
+  buff            Buff                @relation(fields: [buffId], references: [id])
+  payments        BUffSubscriptionPayment[]
+  
+  @@map("buff_subscriptions")
+  @@index([userId])
+  @@index([status])
+  @@index([nextPaymentDate])
+}
+
+model BUffSubscriptionPayment {
+  id              String        @id @default(uuid())
+  buffSubscriptionId  String        @map("buff_subscription_id")
+  
+  // Stripe info
+  stripeInvoiceId String?       @unique @map("stripe_invoice_id")
+  stripePaymentIntentId String? @map("stripe_payment_intent_id")
+  
+  // Payment details
+  amount          Int
+  currency        String        @default("usd")
+  status          PaymentStatus @default(COMPLETED)
+  failureReason   String?       @map("failure_reason")
+  
+  // Period this payment covers
+  periodStart     DateTime      @map("period_start")
+  periodEnd       DateTime      @map("period_end")
+  
+  createdAt       DateTime      @default(now()) @map("created_at")
+  
+  // Relations
+  subscription    BuffSubscription @relation(fields: [buffSubscriptionId], references: [id])
+  
+  @@map("subscription_payments")
+  @@index([buffSubscriptionId])
+}
+
+model Delivery {
+  id              String         @id @default(uuid())
+  purchaseId      String         @map("purchase_id")
+  userId          String         @map("user_id")
+  buffId          String         @map("buff_id")
+  
+  deliveredAt     DateTime       @default(now()) @map("delivered_at")
+  deliveryMethod  DeliveryMethod @default(EMAIL) @map("delivery_method")
+  status          DeliveryStatus @default(SENT) @map("status")
+  
+  emailId         String?        @map("email_id")
+  openedAt        DateTime?      @map("opened_at")
+  
+  createdAt       DateTime       @default(now()) @map("created_at")
+  
+  purchase        PurchasedBuff  @relation(fields: [purchaseId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  buff            Buff           @relation(fields: [buffId], references: [id])
+  
+  @@map("deliveries")
+  
+  @@index([purchaseId])
+  @@index([userId])
+  @@index([deliveredAt])
+  @@index([status])
+}
+
+
+// ============ ENUMS ============
+
+enum BuffCategory {
+  INSTANT   @map("instant")
+  DAILY     @map("daily")
+  WEEKLY    @map("weekly")
+}
+
+enum Recurrence {
+  DAILY     @map("daily")
+  WEEKLY    @map("weekly")
+  MONTHLY   @map("monthly")
+}
+
+enum PaymentStatus {
+  PENDING   @map("pending")
+  COMPLETED @map("completed")
+  FAILED    @map("failed")
+  REFUNDED  @map("refunded")
+}
+
+enum PaymentModel {
+  ONE_TIME @map("one_time")
+  SUBSCRIPTION @map("subscription")
+  BOTH @map("both")
+}
+
+enum SubscriptionStatus {
+  ACTIVE   @map("active")
+  PAST_DUE @map("past_due")
+  CANCELED @map("canceled")
+  EXPIRED  @map("expired")
+}
+
+enum DeliveryMethod {
+  EMAIL     @map("email")
+}
+
+enum DeliveryStatus {
+  PENDING   @map("pending")
+  SENT      @map("sent")
+  FAILED    @map("failed")
+  OPENED    @map("opened")
+}
