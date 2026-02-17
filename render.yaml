@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: buffboost-backend
+    runtime: docker
+    repo: https://github.com/yourusername/buffboost
+    branch: main
+    dockerfilePath: ./Dockerfile.backend
+    envVars:
+      - key: DATABASE_URL
+        sync: false 
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health
