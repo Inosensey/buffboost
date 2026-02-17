@@ -3,7 +3,7 @@ services:
     name: buffboost-backend
     runtime: docker
     plan: free
-    repo: https://github.com/yourusername/buffboost
+    repo: https://github.com/Inosensey/buffboost
     branch: main
     dockerfilePath: ./Dockerfile.backend
     envVars:
