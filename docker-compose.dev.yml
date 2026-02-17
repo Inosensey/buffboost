@@ -29,11 +29,9 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:3001
-      # Critical for Docker file watching:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
       - CHOKIDAR_INTERVAL=1000
-      # Turbopack specific:
       - TURBOPACK_POLLING=true
     volumes:
       - ./packages/frontend:/app/packages/frontend
