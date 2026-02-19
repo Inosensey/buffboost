@@ -2,9 +2,10 @@ services:
   - type: web
     name: buffboost-backend
     runtime: docker
-    repo: https://github.com/yourusername/buffboost
+    plan: free
+    repo: https://github.com/Inosensey/buffboost
     branch: main
-    dockerfilePath: ./Dockerfile.backend
+    dockerfilePath: ./Dockerfile.render
     envVars:
       - key: DATABASE_URL
         sync: false 
@@ -16,4 +17,4 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
-    healthCheckPath: /health
+   # healthCheckPath: /health
