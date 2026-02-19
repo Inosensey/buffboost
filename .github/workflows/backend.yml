@@ -1,0 +1,45 @@
+name: Backend - Migrations & Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/backend/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '!packages/backend/README.md'
+      - '.github/workflows/backend.yml'
+
+jobs:
+  backend-migrate-and-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client (Backend)
+        working-directory: packages/backend
+        run: npx prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Apply Database Migrations
+        working-directory: packages/backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build Backend
+        working-directory: packages/backend
+        run: npm run build
