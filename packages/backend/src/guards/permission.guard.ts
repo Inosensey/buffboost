@@ -42,7 +42,17 @@ export class PermissionsGuard implements CanActivate {
     // User module permissions
     users: {
       admin: ['CREATE', 'READ', 'UPDATE', 'DELETE', 'MANAGE_ROLES'],
-      adventurer: ['CREATE', 'READ', 'UPDATE', 'DELETE'],
+      adventurer: ['CREATE', 'READ', 'UPDATE'],
+    },
+    // User Types module permissions
+    userTypes: {
+      admin: ['CREATE', 'READ', 'UPDATE', 'DELETE', 'MANAGE_ROLES'],
+      adventurer: ['READ'],
+    },
+    // Stripe module permissions
+    stripe: {
+      admin: ['CREATE', 'READ', 'UPDATE', 'DELETE', 'MANAGE_ROLES'],
+      adventurer: ['CREATE', 'READ'],
     },
     // Buff module permissions
     buffs: {
