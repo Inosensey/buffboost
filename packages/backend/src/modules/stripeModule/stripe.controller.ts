@@ -1,11 +1,13 @@
 // src/stripe/stripe.controller.ts
-import { Controller, Post, Body, Req, Inject } from '@nestjs/common';
+import { Controller, Post, Body, Req, Inject, UseGuards } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiResponse } from 'src/utils/responseShaper';
 import { verifyPaymentDTO } from '../buffModule/buff.dto';
 import { createCheckoutDTO } from './stripe.dto';
 import Stripe from 'stripe';
 import { BuffService } from '../buffModule/buff.service';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { PermissionsGuard } from 'src/guards/permission.guard';
 
 @Controller('stripe')
 export class StripeController {
@@ -15,6 +17,7 @@ export class StripeController {
     private readonly buff: BuffService,
   ) {}
 
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Post('create-checkout')
   async createCheckout(
     @Body()
@@ -24,6 +27,7 @@ export class StripeController {
     return ApiResponse.success(session, 'Stripe Session Successfully Created');
   }
 
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Post('create-subscription-checkout')
   async createSubscriptionCheckout(@Body() data: createCheckoutDTO) {
     const session =
@@ -31,6 +35,7 @@ export class StripeController {
     return ApiResponse.success(session, 'Stripe Session Successfully Created');
   }
 
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Post('verify-payment')
   async verifyPayment(@Body() data: verifyPaymentDTO) {
     const session = await this.stripeService.getSession(data);
