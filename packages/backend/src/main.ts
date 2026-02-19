@@ -7,7 +7,7 @@ import { PrismaExceptionFilter } from './PrismaExceptionFilter';
 import { HttpExceptionFilter } from './HttpExceptionFilter';
 import * as dotenv from 'dotenv';
 import * as bodyParser from 'body-parser';
-
+import { json } from 'express';
 dotenv.config();
 
 async function bootstrap() {
@@ -16,11 +16,14 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new PrismaExceptionFilter(), new HttpExceptionFilter());
+  app.use(json({ limit: '10mb' }));
+  app.use(cookieParser());
   app.use(
+    '/stripe/webhook',
     bodyParser.raw({
       type: 'application/json',
       verify: (req: any, res, buf) => {
-        req.rawBody = buf; // Attach raw body to request
+        req.rawBody = buf;
       },
     }),
   );

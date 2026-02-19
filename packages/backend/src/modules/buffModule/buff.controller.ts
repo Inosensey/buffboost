@@ -18,21 +18,21 @@ import { PermissionsGuard } from 'src/guards/permission.guard';
 export class BuffController {
   constructor(private readonly buffService: BuffService) {}
 
-  // @UseGuards(AuthGuard, PermissionsGuard)
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Get()
-  async getBUffs() {
+  async getBuffs() {
     const buffs = await this.buffService.getBuffs();
     return ApiResponse.success(buffs, 'Buffs retrieved successfully');
   }
 
   @UseGuards(AuthGuard, PermissionsGuard)
   @Get('/id')
-  async getBuff(@Param() id: string) {
+  async getBuff(@Param('id') id: string) {
     const buff = await this.buffService.getBuff(id);
     return ApiResponse.success(buff, 'Buff retrieved successfully');
   }
 
-  // @UseGuards(AuthGuard, PermissionsGuard)
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Post('/create')
   async createBuff(@Body() data: MutateBuffDto) {
     const buff = await this.buffService.createBuff(data);
@@ -41,14 +41,14 @@ export class BuffController {
 
   @UseGuards(AuthGuard, PermissionsGuard)
   @Put('/update/:id')
-  async updateBUff(@Param() id: string, @Body() data: MutateBuffDto) {
+  async updateBUff(@Param('id') id: string, @Body() data: MutateBuffDto) {
     const buff = await this.buffService.updateBuff(id, data);
     return ApiResponse.success(buff, 'Buff Updated Successfully');
   }
 
   @UseGuards(AuthGuard, PermissionsGuard)
   @Delete('/delete/:id')
-  async deleteBUff(@Param() id: string) {
+  async deleteBUff(@Param('id') id: string) {
     await this.buffService.deleteBuff(id);
     return ApiResponse.success(null, 'Buff Deleted Successfully');
   }

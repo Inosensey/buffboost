@@ -13,10 +13,14 @@ import {
   UserSelectedPayload,
   UserTypeSelectedPayload,
 } from 'src/types/prismaTypes';
+import { UserSessionService } from '../userSessionModule/userSession.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly userSession: UserSessionService,
+  ) {}
 
   async createUser(data: CreateUserDTO): Promise<UserSelectedPayload> {
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -127,12 +131,10 @@ export class UserService {
       },
     });
 
-    // Use generic error message for security (don't reveal if email exists)
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Verify password
     const passwordIsValid = await bcrypt.compare(
       credentials.password,
       user.password,
@@ -145,11 +147,20 @@ export class UserService {
     // Create JWT token
     const token = this.generateJwtToken(user.id, user.userType.typeName);
 
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await this.userSession.createSession(user.id, token, expiresAt);
+
     return {
       token,
       userId: user.id,
       userType: user.userType.typeName,
     };
+  }
+
+  async signOut(token: string): Promise<void> {
+    await this.userSession.invalidateSession(token);
   }
 
   async updateUser(
@@ -183,7 +194,7 @@ export class UserService {
     });
   }
 
-  private generateJwtToken(userId: string, roleType: string): string {
+  private generateJwtToken(userId: string, userType: string): string {
     if (!process.env.JWT_SECRET) {
       throw new Error('JWT_SECRET is not defined in environment variables');
     }
@@ -191,10 +202,10 @@ export class UserService {
     return jwt.sign(
       {
         userId,
-        roleType,
+        userType,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' },
+      { expiresIn: '7d' },
     );
   }
 }

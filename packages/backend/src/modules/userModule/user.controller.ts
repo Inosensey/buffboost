@@ -7,11 +7,12 @@ import {
   Param,
   Post,
   Put,
+  Req,
   Res,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Response, Request } from 'express';
 
 // Guards
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -82,7 +83,7 @@ export class UserController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'none',
-      maxAge: 3600000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return ApiResponse.success(
       {
@@ -96,7 +97,12 @@ export class UserController {
   @Post('auth/sign-out')
   @HttpCode(200)
   @UseInterceptors(CookieCheckInterceptor)
-  signOutUser(@Res({ passthrough: true }) response: Response) {
+  async signOutUser(
+    @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
+  ) {
+    const token = request.cookies?.token as string;
+    await this.userService.signOut(token);
     response.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

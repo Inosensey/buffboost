@@ -24,6 +24,14 @@
     "types": ["node", "jest", "@prisma/client"],
     "lib": ["ES2023"]
   },
+
+  "watchOptions": {
+    "watchFile": "priorityPollingInterval",
+    "watchDirectory": "dynamicprioritypolling",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true,
+    "excludeDirectories": ["**/node_modules", "dist"]
+  },
   
   "include": [
     "src/**/*",
