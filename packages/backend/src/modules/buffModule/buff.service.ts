@@ -400,7 +400,6 @@ export class BuffService {
         category: data.category,
         durationHours: data.durationHours,
         isRecurring: data.isRecurring,
-        recurrence: data.recurrence,
         updatedAt: new Date(),
       },
       select: {
