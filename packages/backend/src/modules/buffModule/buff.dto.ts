@@ -127,45 +127,6 @@ export class purchasedBuffDto {
   gateway: string;
 }
 
-export class verifyPaymentDTO {
-  @IsNotEmpty({ message: 'User ID is required' })
-  @IsString({ message: 'User ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  userId: string;
-
-  @IsNotEmpty({ message: 'Buff ID is required' })
-  @IsString({ message: 'Buff ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  buffId: string;
-
-  @IsNotEmpty({ message: 'Purchase ID is required' })
-  @IsString({ message: 'Purchase ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  purchaseId: string;
-
-  @IsNotEmpty({ message: 'Payment ID is required' })
-  @IsString({ message: 'Payment ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  paymentId: string;
-
-  @IsNotEmpty({ message: 'Session ID is required' })
-  @IsString({ message: 'Session ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  sessionId: string;
-}
-
-export class recordPurchasedDTO {
-  @IsNotEmpty({ message: 'User ID is required' })
-  @IsString({ message: 'User ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  userId: string;
-
-  @IsNotEmpty({ message: 'Buff ID is required' })
-  @IsString({ message: 'Buff ID must be a string' })
-  @Transform(({ value }) => String(value.trim()))
-  buffId: string;
-}
-
 export class activatePurchasedDTO {
   @IsNotEmpty({ message: 'User ID is required' })
   @IsString({ message: 'User ID must be a string' })
