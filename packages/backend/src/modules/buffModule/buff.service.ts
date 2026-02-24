@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { MutateBuffDto, recordPurchasedDTO } from './buff.dto';
+import { MutateBuffDto } from './buff.dto';
 import {
   ActiveBuffSelectedPayload,
   BuffSubscriptionSelectedPayload,
@@ -8,6 +8,8 @@ import {
   PurchasedBuffSelectedPayload,
 } from 'src/types/prismaTypes';
 import Stripe from 'stripe';
+import { CheckoutItemDTO } from '../stripeModule/stripe.dto';
+import { Prisma } from '@prisma/client';
 // import { StripeService } from '../stripeModule/stripe.service';
 
 @Injectable()
@@ -240,7 +242,9 @@ export class BuffService {
   }
 
   async recordPurchasedBuff(
-    data: recordPurchasedDTO,
+    userId: string,
+    data: CheckoutItemDTO,
+    tx: Prisma.TransactionClient,
   ): Promise<PurchasedBuffSelectedPayload> {
     const buffInfo = await this.getBuff(data.buffId);
 
@@ -256,14 +260,14 @@ export class BuffService {
       } else if (buffInfo.recurrence === 'WEEKLY') {
         expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       } else if (buffInfo.recurrence === 'MONTHLY') {
-        expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        expiresAt = new Date(expiresAt.setMonth(expiresAt.getMonth() + 1));
       } else {
         expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
       }
     }
-    const newPurchasedBUff = await this.prisma.purchasedBuff.create({
+    const newPurchasedBUff = await tx.purchasedBuff.create({
       data: {
-        userId: data.userId,
+        userId: userId,
         buffId: data.buffId,
         gateway: 'stripe',
         status: 'PENDING',
@@ -307,8 +311,9 @@ export class BuffService {
   async updatePurchasedBuffWithStripSession(
     id: string,
     session: Stripe.Response<Stripe.Checkout.Session>,
+    tx: Prisma.TransactionClient,
   ): Promise<PurchasedBuffSelectedPayload> {
-    const updatedPurchasedBuff = await this.prisma.purchasedBuff.update({
+    const updatedPurchasedBuff = await tx.purchasedBuff.update({
       where: { id },
       data: {
         paymentId: session.id,
@@ -347,41 +352,20 @@ export class BuffService {
   }
 
   async updatePurchasedBuffStatus(
-    purchasedBuffId: string,
-  ): Promise<PurchasedBuffSelectedPayload> {
-    return await this.prisma.purchasedBuff.update({
-      where: { id: purchasedBuffId },
+    purchasedBuffIds: string[],
+  ): Promise<PurchasedBuffSelectedPayload[]> {
+    await this.prisma.purchasedBuff.updateMany({
+      where: {
+        id: { in: purchasedBuffIds },
+      },
       data: {
         status: 'COMPLETED',
       },
-      select: {
-        id: true,
-        userId: true,
-        buffId: true,
-        paymentId: true,
-        amount: true,
-        currency: true,
-        gateway: true,
-        status: true,
-        startDate: true,
-        endDate: true,
-        isActive: true,
-        recurrenceCount: true,
-        nextDeliveryAt: true,
-        buff: {
-          select: {
-            id: true,
-            name: true,
-            emoji: true,
-            type: true,
-            description: true,
-            tagline: true,
-            price: true,
-            category: true,
-          },
-        },
-      },
     });
+
+    const updatedPurchasedBuffs =
+      await this.getBuffsByPurchaseBuffId(purchasedBuffIds);
+    return updatedPurchasedBuffs;
   }
 
   async updateBuff(
@@ -422,6 +406,41 @@ export class BuffService {
 
   async deleteBuff(id: string) {
     return this.prisma.buff.delete({ where: { id } });
+  }
+
+  async getBuffsByPurchaseBuffId(
+    purchaseBuffIds: string[],
+  ): Promise<PurchasedBuffSelectedPayload[]> {
+    return this.prisma.purchasedBuff.findMany({
+      where: { id: { in: purchaseBuffIds } },
+      select: {
+        id: true,
+        userId: true,
+        buffId: true,
+        paymentId: true,
+        amount: true,
+        currency: true,
+        gateway: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        isActive: true,
+        recurrenceCount: true,
+        nextDeliveryAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
   }
 
   async getBuffs(): Promise<BuffTypeSelectedPayload[]> {
@@ -467,8 +486,8 @@ export class BuffService {
 
   async getPurchasedBuffByPaymentId(
     paymentId: string,
-  ): Promise<PurchasedBuffSelectedPayload> {
-    return await this.prisma.purchasedBuff.findUniqueOrThrow({
+  ): Promise<PurchasedBuffSelectedPayload[]> {
+    return await this.prisma.purchasedBuff.findMany({
       where: { paymentId },
       select: {
         id: true,
