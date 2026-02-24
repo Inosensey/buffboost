@@ -2,10 +2,15 @@
 import { Injectable, Inject } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
-import { verifyPaymentDTO } from '../buffModule/buff.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { createCheckoutDTO } from './stripe.dto';
+import {
+  CheckoutItemDTO,
+  createCheckoutDTO,
+  verifyPaymentDTO,
+} from './stripe.dto';
 import { BuffService } from '../buffModule/buff.service';
+import { PurchasedBuffSelectedPayload } from 'src/types/prismaTypes';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class StripeService {
@@ -16,48 +21,84 @@ export class StripeService {
     private readonly buff: BuffService,
   ) {}
 
-  async createCheckoutSession(data: createCheckoutDTO) {
-    const newPurchasedBUff = await this.buff.recordPurchasedBuff(data);
-
-    const session = await this.stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      // mode: 'subscription', // or 'payment' for onse-time
-      mode: 'payment',
-      line_items: [
-        {
-          price: data.priceId,
-          quantity: 1,
-        },
-      ],
-      customer_email: data.email,
-      metadata: {
-        purchasedBuffId: newPurchasedBUff.id,
-        buffBoostUserId: data.userId,
-      },
-      success_url: `${this.configService.get('FRONTEND_URL')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.configService.get('FRONTEND_URL')}/cancel`,
-    });
-
-    await this.buff.updatePurchasedBuffWithStripSession(
-      newPurchasedBUff.id,
-      session,
+  async createPurchasedBuffs(
+    items: CheckoutItemDTO[],
+    userId: string,
+    tx: Prisma.TransactionClient,
+  ) {
+    const newPurchasedBuffs = await Promise.all(
+      items.map((item: CheckoutItemDTO) =>
+        this.buff.recordPurchasedBuff(userId, item, tx),
+      ),
     );
-    return { sessionId: session.id, url: session.url };
+
+    return newPurchasedBuffs;
+  }
+
+  async updatePurchasedBuffs(
+    buffs: PurchasedBuffSelectedPayload[],
+    session: Stripe.Response<Stripe.Checkout.Session>,
+    tx: Prisma.TransactionClient,
+  ) {
+    const updatedPurchasedBuffs = await Promise.all(
+      buffs.map((buff: PurchasedBuffSelectedPayload) =>
+        this.buff.updatePurchasedBuffWithStripSession(buff.id, session, tx),
+      ),
+    );
+
+    return updatedPurchasedBuffs;
+  }
+
+  async createCheckoutSession(data: createCheckoutDTO) {
+    const sessionRes = await this.prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const newPurchasedBuffs = await this.createPurchasedBuffs(
+          data.items,
+          data.userId,
+          tx,
+        );
+
+        const session = await this.stripe.checkout.sessions.create({
+          payment_method_types: ['card'],
+          // mode: 'subscription', // or 'payment' for one-time
+          mode: 'payment',
+          line_items: data.items.map((item) => {
+            return {
+              price: item.priceId,
+              quantity: 1,
+            };
+          }),
+          customer_email: data.email,
+          metadata: {
+            purchasedBuffIds: JSON.stringify(
+              newPurchasedBuffs.map((buff) => buff.id),
+            ),
+            buffBoostUserId: data.userId,
+          },
+          success_url: `${this.configService.get('FRONTEND_URL')}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${this.configService.get('FRONTEND_URL')}/payment/cancel?session_id={CHECKOUT_SESSION_ID}`,
+        });
+
+        await this.updatePurchasedBuffs(newPurchasedBuffs, session, tx);
+        return { sessionId: session.id, url: session.url };
+      },
+    );
+    return sessionRes;
   }
 
   async createSubscriptionCheckoutSession(data: createCheckoutDTO) {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
-      line_items: [
-        {
-          price: data.priceId,
+      line_items: data.items.map((item) => {
+        return {
+          price: item.priceId,
           quantity: 1,
-        },
-      ],
+        };
+      }),
       customer_email: data.email,
       metadata: {
         userId: data.userId,
-        buffId: data.buffId,
+        buffId: data.items[0].buffId,
       },
       success_url: `${this.configService.get('FRONTEND_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get('FRONTEND_URL')}/subscription/cancel`,
