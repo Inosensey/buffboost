@@ -104,7 +104,7 @@ model PurchasedBuff {
   userId          String         @map("user_id")
   buffId          String         @map("buff_id")
 
-  paymentId       String?        @unique @map("payment_id")
+  paymentId       String?        @map("payment_id")
   amount          Int?
   currency        String?        @default("usd")
   gateway         String
