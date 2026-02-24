@@ -2,8 +2,7 @@
 import { Controller, Post, Body, Req, Inject, UseGuards } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { ApiResponse } from 'src/utils/responseShaper';
-import { verifyPaymentDTO } from '../buffModule/buff.dto';
-import { createCheckoutDTO } from './stripe.dto';
+import { createCheckoutDTO, verifyPaymentDTO } from './stripe.dto';
 import Stripe from 'stripe';
 import { BuffService } from '../buffModule/buff.service';
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -40,7 +39,7 @@ export class StripeController {
   async verifyPayment(@Body() data: verifyPaymentDTO) {
     const session = await this.stripeService.getSession(data);
     if (session.payment_status === 'paid') {
-      return ApiResponse.success(true, 'Payment is Verified');
+      return ApiResponse.success(session, 'Payment is Verified');
     }
 
     return ApiResponse.success(false, 'Payment failed to Verify');
@@ -82,10 +81,10 @@ export class StripeController {
 
           await this.buff.activateBuff(userId, buffId, subscription);
         } else if (session.mode === 'payment') {
-          const purchase = await this.buff.getPurchasedBuffByPaymentId(
-            session.id,
-          );
-          await this.buff.updatePurchasedBuffStatus(purchase.id);
+          const purchasedBuffIds = JSON.parse(
+            session.metadata?.purchasedBuffIds || '[]',
+          ) as string[];
+          await this.buff.updatePurchasedBuffStatus(purchasedBuffIds);
         }
         break;
       }
