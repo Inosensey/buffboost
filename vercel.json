@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": ".next",
-  "rootDirectory": "packages/frontend",
   "env": {
     "NEXT_PUBLIC_API_URL": "https://buffboost-backend-yliv.onrender.com"
   },
