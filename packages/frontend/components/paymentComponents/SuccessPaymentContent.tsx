@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -56,6 +56,8 @@ const SuccessPaymentContent = () => {
   const [purchases] = useState(DUMMY_PURCHASES); // For preview with multiple items
   // const [purchases] = useState([DUMMY_PURCHASES[0]]); // For single item preview
 
+  const [formattedDate, setFormattedDate] = useState<string | null>(null);
+
   const getBuffEmoji = (buffName: string) => {
     const emojiMap: Record<string, string> = {
       Patience: "🧘",
@@ -70,15 +72,16 @@ const SuccessPaymentContent = () => {
     return emojiMap[buffName] || emojiMap.default;
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  useEffect(() => {
+    // This runs only on the client, fixing the hydration mismatch
+    setFormattedDate(new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }));
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#10002B] py-2 px-4">
@@ -154,7 +157,7 @@ const SuccessPaymentContent = () => {
                     Valid Until
                   </span>
                   <span className="font-inter text-xs text-[#C77DFF]">
-                    {formatDate(purchase.endDate)}
+                    {formattedDate}
                   </span>
                 </div>
 
