@@ -11,5 +11,5 @@
       "main": true
     }
   },
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- packages/frontend/"
+  "ignoreCommand": "bash -c '! (git rev-parse HEAD^ >/dev/null 2>&1) || git diff --quiet HEAD^ HEAD -- packages/frontend/'"
 }
