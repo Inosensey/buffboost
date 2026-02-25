@@ -95,7 +95,9 @@ export class StripeController {
         // DEBUG: Log the entire invoice structure
         console.log('💰 Invoice paid - Full invoice object:', invoice);
         const subscriptionLine = invoice.lines?.data[0];
-        const subscriptionId = subscriptionLine?.subscription as string;
+        // const subscriptionId = subscriptionLine?.subscription as string;
+        const subscriptionId = invoice.parent?.subscription_details?.subscription as string;
+        console.log('💰 Extracted subscriptionId:', subscriptionId);
 
         const subscription =
           await this.buff.getBuffSubscriptionByStripeSubId(subscriptionId);
