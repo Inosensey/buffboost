@@ -23,7 +23,7 @@ export default async function Home() {
             </div>
             <p className="phone:text-lg phone:text-center laptop:text-xl">
               🌟 Supercharge Your Day with{" "}
-              <span className="text-Text font-semibold">Virtual Buffs!</span>
+              <span className="text-Text font-semibold">Virtual Buffs</span>
             </p>
           </div>
           <div className="font-oxanium">
