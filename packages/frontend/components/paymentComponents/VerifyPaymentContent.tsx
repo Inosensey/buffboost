@@ -144,7 +144,7 @@ const VerifyPaymentContent = () => {
           <div className="flex flex-col mb-2 gap-1">
             {purchaseDetails &&
               purchaseDetails.map((purchaseDetail: any) => (
-                <div className="bg-[#10002B]/50 rounded-xl p-4 border border-[#3C096C]">
+                <div key={purchaseDetail.buff?.name} className="bg-[#10002B]/50 rounded-xl p-4 border border-[#3C096C]">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-lg bg-[#5A189A]/10 flex items-center justify-center text-3xl">
                       {getBuffEmoji(purchaseDetail.buff?.name || "")}
