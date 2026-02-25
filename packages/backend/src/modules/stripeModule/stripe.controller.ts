@@ -92,6 +92,8 @@ export class StripeController {
       case 'invoice.paid': {
         // SUBSCRIPTION RENEWAL
         const invoice = event.data.object;
+        // DEBUG: Log the entire invoice structure
+        console.log('💰 Invoice paid - Full invoice object:', invoice);
         const subscriptionLine = invoice.lines?.data[0];
         const subscriptionId = subscriptionLine?.subscription as string;
 
