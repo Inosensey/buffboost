@@ -11,6 +11,7 @@ import {
 import { BuffService } from '../buffModule/buff.service';
 import { PurchasedBuffSelectedPayload } from 'src/types/prismaTypes';
 import { Prisma } from '@prisma/client';
+import { UserService } from '../userModule/user.service';
 
 @Injectable()
 export class StripeService {
@@ -19,7 +20,40 @@ export class StripeService {
     private configService: ConfigService,
     private readonly prisma: PrismaService,
     private readonly buff: BuffService,
+    private readonly user: UserService,
   ) {}
+
+  async createStripeCustomer(email: string, buffBoostUserId: string) {
+    return await this.stripe.customers.create({
+      email: email,
+      metadata: {
+        buffBoostUserId,
+      },
+    });
+  }
+  async getOrCreateStripeCustomer(
+    userId: string,
+    email: string,
+  ): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { stripeCustomerId: true },
+    });
+
+    if (user?.stripeCustomerId) {
+      return user.stripeCustomerId as string;
+    }
+
+    const newStripeCustomer = await this.createStripeCustomer(email, userId);
+
+    // Save to database
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { stripeCustomerId: newStripeCustomer.id },
+    });
+
+    return newStripeCustomer.id;
+  }
 
   async createPurchasedBuffs(
     items: CheckoutItemDTO[],
@@ -50,6 +84,11 @@ export class StripeService {
   }
 
   async createCheckoutSession(data: createCheckoutDTO) {
+    const stripeCustomerId = await this.getOrCreateStripeCustomer(
+      data.userId,
+      data.email,
+    );
+
     const sessionRes = await this.prisma.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const newPurchasedBuffs = await this.createPurchasedBuffs(
@@ -60,7 +99,6 @@ export class StripeService {
 
         const session = await this.stripe.checkout.sessions.create({
           payment_method_types: ['card'],
-          // mode: 'subscription', // or 'payment' for one-time
           mode: 'payment',
           line_items: data.items.map((item) => {
             return {
@@ -68,7 +106,7 @@ export class StripeService {
               quantity: 1,
             };
           }),
-          customer_email: data.email,
+          customer: stripeCustomerId,
           metadata: {
             purchasedBuffIds: JSON.stringify(
               newPurchasedBuffs.map((buff) => buff.id),
@@ -87,6 +125,10 @@ export class StripeService {
   }
 
   async createSubscriptionCheckoutSession(data: createCheckoutDTO) {
+    const stripeCustomerId = await this.getOrCreateStripeCustomer(
+      data.userId,
+      data.email,
+    );
     const session = await this.stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: data.items.map((item) => {
@@ -95,7 +137,7 @@ export class StripeService {
           quantity: 1,
         };
       }),
-      customer_email: data.email,
+      customer: stripeCustomerId,
       metadata: {
         userId: data.userId,
         buffId: data.items[0].buffId,
