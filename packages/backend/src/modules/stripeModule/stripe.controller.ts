@@ -78,6 +78,7 @@ export class StripeController {
             buffId,
             session,
           );
+          console.log('newSubscription', subscription);
 
           const newActiveBuff = await this.buff.activateBuff(userId, buffId, subscription);
           console.log('newActiveBuff', newActiveBuff);
@@ -93,15 +94,11 @@ export class StripeController {
       case 'invoice.paid': {
         // SUBSCRIPTION RENEWAL
         const invoice = event.data.object;
-        // DEBUG: Log the entire invoice structure
-        console.log('💰 Invoice paid - Full invoice object:', invoice);
-        const subscriptionLine = invoice.lines?.data[0];
-        // const subscriptionId = subscriptionLine?.subscription as string;
         const subscriptionId = invoice.parent?.subscription_details?.subscription as string;
-        console.log('💰 Extracted subscriptionId:', subscriptionId);
 
         const subscription =
           await this.buff.getBuffSubscriptionByStripeSubId(subscriptionId);
+        console.log('subscription', subscription);
 
         if (subscription) {
           await this.buff.createBuffSubscriptionPayment(subscription, invoice);
