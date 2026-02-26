@@ -79,7 +79,8 @@ export class StripeController {
             session,
           );
 
-          await this.buff.activateBuff(userId, buffId, subscription);
+          const newActiveBuff = await this.buff.activateBuff(userId, buffId, subscription);
+          console.log('newActiveBuff', newActiveBuff);
         } else if (session.mode === 'payment') {
           const purchasedBuffIds = JSON.parse(
             session.metadata?.purchasedBuffIds || '[]',
