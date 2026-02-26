@@ -124,7 +124,6 @@ model PurchasedBuff {
   user            User           @relation(fields: [userId], references: [id])
   buff            Buff           @relation(fields: [buffId], references: [id])
   deliveries      Delivery[]
-  activities      ActiveBuff[]
   
   @@map("purchased_buffs")
   
@@ -139,7 +138,7 @@ model ActiveBuff {
   id              String         @id @default(uuid())
   userId          String         @map("user_id")
   buffId          String         @map("buff_id")
-  purchaseId      String         @map("purchase_id")
+  buffSubscriptionId String      @map("buff_subscription_id")
 
   activatedAt     DateTime       @default(now()) @map("activated_at")
   expiresAt       DateTime       @map("expires_at")
@@ -153,7 +152,7 @@ model ActiveBuff {
 
   user            User           @relation(fields: [userId], references: [id])
   buff            Buff           @relation(fields: [buffId], references: [id])
-  purchase        PurchasedBuff  @relation(fields: [purchaseId], references: [id])
+  buffSubscription BuffSubscription @relation(fields: [buffSubscriptionId], references: [id])
 
   @@map("active_buffs")
   
@@ -195,6 +194,7 @@ model BuffSubscription {
   user            User                @relation(fields: [userId], references: [id])
   buff            Buff                @relation(fields: [buffId], references: [id])
   payments        BUffSubscriptionPayment[]
+  activities      ActiveBuff[]
   
   @@map("buff_subscriptions")
   @@index([userId])
