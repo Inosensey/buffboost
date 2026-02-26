@@ -5,6 +5,8 @@ import Stripe from 'stripe';
 import { StripeService } from './stripe.service';
 import { StripeController } from './stripe.controller';
 import { BuffService } from '../buffModule/buff.service';
+import { UserService } from '../userModule/user.service';
+import { UserSessionService } from '../userSessionModule/userSession.service';
 
 @Global()
 @Module({
@@ -13,6 +15,8 @@ import { BuffService } from '../buffModule/buff.service';
   providers: [
     StripeService,
     BuffService,
+    UserService,
+    UserSessionService,
     {
       provide: 'STRIPE_CLIENT',
       useFactory: (configService: ConfigService) => {
