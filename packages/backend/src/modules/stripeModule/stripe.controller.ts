@@ -80,7 +80,11 @@ export class StripeController {
           );
           console.log('newSubscription', subscription);
 
-          const newActiveBuff = await this.buff.activateBuff(userId, buffId, subscription);
+          const newActiveBuff = await this.buff.activateBuff(
+            userId,
+            buffId,
+            subscription,
+          );
           console.log('newActiveBuff', newActiveBuff);
         } else if (session.mode === 'payment') {
           const purchasedBuffIds = JSON.parse(
@@ -94,7 +98,8 @@ export class StripeController {
       case 'invoice.paid': {
         // SUBSCRIPTION RENEWAL
         const invoice = event.data.object;
-        const subscriptionId = invoice.parent?.subscription_details?.subscription as string;
+        const subscriptionId = invoice.parent?.subscription_details
+          ?.subscription as string;
 
         const subscription =
           await this.buff.getBuffSubscriptionByStripeSubId(subscriptionId);
