@@ -100,7 +100,7 @@ export class BuffService {
       data: {
         userId: userId,
         buffId: buffId,
-        purchaseId: subscriptionData.id,
+        buffSubscriptionId: subscriptionData.id,
         expiresAt: subscriptionData.currentPeriodEnd,
       },
       select: {
