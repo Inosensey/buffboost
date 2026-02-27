@@ -139,6 +139,7 @@ export class BuffService {
       );
 
     console.log('stripeSubscription', stripeSubscription);
+    console.log('stripeSubscription items', stripeSubscription.items.data);
 
     const firstItem = stripeSubscription.items.data[0];
     const newBuffSubscription = await this.prisma.buffSubscription.create({
