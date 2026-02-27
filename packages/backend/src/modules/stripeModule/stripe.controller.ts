@@ -73,6 +73,8 @@ export class StripeController {
             buffId: string;
           };
 
+          console.log('session', session);
+
           const subscription = await this.buff.createBuffSubscription(
             userId,
             buffId,
