@@ -7,6 +7,7 @@ import Stripe from 'stripe';
 import { BuffService } from '../buffModule/buff.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { PermissionsGuard } from 'src/guards/permission.guard';
+import { BuffSubscriptionStatus } from 'src/types/enum';
 
 @Controller('stripe')
 export class StripeController {
@@ -44,6 +45,19 @@ export class StripeController {
 
     return ApiResponse.success(false, 'Payment failed to Verify');
   }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Post('cancel-subscription')
+  async cancelSubscription(
+    @Body() data: { stripeSubscriptionId: string; immediate: boolean },
+  ) {
+    const response = await this.stripeService.cancelSubscription(
+      data.stripeSubscriptionId,
+      data.immediate,
+    );
+    return ApiResponse.success(response.data, response.message);
+  }
+
   @Post('webhook')
   async handleWebhook(@Req() request: Request) {
     const signature = request.headers['stripe-signature'] as string;
@@ -101,7 +115,6 @@ export class StripeController {
 
         const subscription =
           await this.buff.getBuffSubscriptionByStripeSubId(subscriptionId);
-        console.log('subscription', subscription);
 
         if (subscription) {
           await this.buff.createBuffSubscriptionPayment(subscription, invoice);
@@ -110,6 +123,26 @@ export class StripeController {
 
           await this.buff.extendActiveBuffPeriod(subscription, invoice);
         }
+        break;
+      }
+
+      case 'customer.subscription.deleted': {
+        const isExpired = true;
+
+        const stripeSubscription = event.data.object;
+
+        const buffSubscription =
+          await this.buff.getBuffSubscriptionByStripeSubId(
+            stripeSubscription.id,
+          );
+
+        await this.buff.updateBuffSubscriptionStatus(
+          buffSubscription,
+          BuffSubscriptionStatus.CANCELED,
+        );
+
+        // Deactivate the buff
+        await this.buff.updateActiveBuffStatus(buffSubscription, isExpired);
         break;
       }
     }
