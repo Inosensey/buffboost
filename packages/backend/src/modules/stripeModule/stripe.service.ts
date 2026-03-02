@@ -41,7 +41,7 @@ export class StripeService {
     });
 
     if (user?.stripeCustomerId) {
-      return user.stripeCustomerId as string;
+      return user.stripeCustomerId;
     }
 
     const newStripeCustomer = await this.createStripeCustomer(email, userId);
@@ -142,11 +142,130 @@ export class StripeService {
         userId: data.userId,
         buffId: data.items[0].buffId,
       },
-      success_url: `${this.configService.get('FRONTEND_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${this.configService.get('FRONTEND_URL')}/subscription/cancel`,
+      success_url: `${this.configService.get('FRONTEND_URL')}/subscription-payment/success?subscription_id={SUBSCRIPTION_ID}`,
+      cancel_url: `${this.configService.get('FRONTEND_URL')}/subscription-payment/cancel`,
     });
 
     return { sessionId: session.id, url: session.url };
+  }
+
+  async cancelSubscription(
+    stripeSubscriptionId: string,
+    immediate: boolean = false,
+  ) {
+    if (immediate) {
+      await this.stripe.subscriptions.cancel(stripeSubscriptionId);
+
+      const response = await this.issueProratedRefund(stripeSubscriptionId);
+
+      if (response.status) {
+        return { data: response.data, message: response.message };
+      } else {
+        return { data: null, message: response.message };
+      }
+    } else {
+      const subscription: Stripe.Subscription =
+        await this.stripe.subscriptions.update(stripeSubscriptionId, {
+          cancel_at_period_end: true,
+        });
+
+      // await this.sendRetentionEmail(stripeSubscriptionId);
+
+      return {
+        data: {
+          activeUntil: new Date(
+            subscription.items.data[0].current_period_end * 1000,
+          ),
+        },
+        message: 'Subscription will cancel at end of billing period',
+      };
+    }
+  }
+
+  async issueProratedRefund(
+    subscriptionId: string,
+  ): Promise<{ status: boolean; data?: Stripe.Refund; message: string }> {
+    try {
+      const subscription = (await this.stripe.subscriptions.retrieve(
+        subscriptionId,
+        { expand: ['latest_invoice'] },
+      )) as Stripe.Subscription;
+
+      const items = subscription.items.data.map((item) => ({
+        id: item.id,
+        price: item.price.id,
+        quantity: 0,
+      }));
+
+      const upcomingPreview = (await this.stripe.invoices.createPreview({
+        customer: subscription.customer as string,
+        subscription: subscriptionId,
+        subscription_details: {
+          items: items,
+          proration_behavior: 'create_prorations',
+        },
+      })) as Stripe.Invoice;
+
+      let proratedAmount = 0;
+      if (upcomingPreview.lines?.data) {
+        for (const line of upcomingPreview.lines.data) {
+          if (
+            line.amount < 0 &&
+            line.parent?.subscription_item_details?.proration === true
+          ) {
+            proratedAmount += Math.abs(line.amount);
+          }
+        }
+      }
+
+      if (proratedAmount === 0) {
+        return {
+          status: true,
+          message: 'No prorated amount to refund',
+        };
+      }
+
+      const invoices = await this.stripe.invoices.list({
+        subscription: subscription.id,
+        customer: subscription.customer as string,
+        limit: 10,
+        status: 'paid',
+      });
+
+      let paymentIntentId: string | null = null;
+
+      for (const invoice of invoices.data) {
+        const invoicePayments = await this.stripe.invoicePayments.list({
+          invoice: invoice.id,
+          limit: 1,
+        });
+
+        if (invoicePayments.data.length > 0) {
+          const invoicePayment = invoicePayments.data[0];
+          if (invoicePayment.payment?.type === 'payment_intent') {
+            paymentIntentId = invoicePayment.payment.payment_intent as string;
+            break;
+          }
+        }
+      }
+
+      if (!paymentIntentId) {
+        throw new Error('No payment intent found to refund from');
+      }
+
+      const refund = await this.stripe.refunds.create({
+        payment_intent: paymentIntentId,
+        amount: proratedAmount,
+      });
+
+      return {
+        status: true,
+        data: refund,
+        message: `Refund issued: ${refund.id}`,
+      };
+    } catch (error) {
+      throw new Error(`Error issuing prorated refund: ${error.message}`);
+    }
   }
 
   async getSession(data: verifyPaymentDTO) {
