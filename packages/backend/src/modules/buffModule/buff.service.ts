@@ -10,6 +10,7 @@ import {
 import Stripe from 'stripe';
 import { CheckoutItemDTO } from '../stripeModule/stripe.dto';
 import { Prisma } from '@prisma/client';
+import { BuffSubscriptionStatus } from 'src/types/enum';
 // import { StripeService } from '../stripeModule/stripe.service';
 
 @Injectable()
@@ -221,6 +222,31 @@ export class BuffService {
         nextPaymentDate: new Date(invoice.period_end * 1000),
         lastPaymentDate: new Date(),
       },
+    });
+  }
+
+  async updateBuffSubscriptionStatus(
+    subscription: BuffSubscriptionSelectedPayload,
+    status: BuffSubscriptionStatus,
+  ) {
+    await this.prisma.buffSubscription.update({
+      where: { id: subscription.id },
+      data: { status, cancelAtPeriodEnd: true, canceledAt: new Date() },
+    });
+  }
+
+  async updateActiveBuffStatus(
+    subscription: BuffSubscriptionSelectedPayload,
+    isExpired: boolean,
+  ) {
+    await this.prisma.activeBuff.update({
+      where: {
+        userId_buffId: {
+          userId: subscription.user.id,
+          buffId: subscription.buff.id,
+        },
+      },
+      data: { isExpired },
     });
   }
 
