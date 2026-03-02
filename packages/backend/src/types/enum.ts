@@ -9,3 +9,9 @@ export enum Recurrence {
   WEEKLY = 'WEEKLY',
   MONTHLY = 'MONTHLY',
 }
+
+export enum BuffSubscriptionStatus {
+  ACTIVE = 'ACTIVE',
+  CANCELED = 'CANCELED',
+  EXPIRED = 'EXPIRED',
+}
