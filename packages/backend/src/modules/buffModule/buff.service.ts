@@ -188,6 +188,7 @@ export class BuffService {
         },
       },
       data: {
+        isExpired: false,
         buffSubscriptionId: subscriptionData.id,
         expiresAt: subscriptionData.currentPeriodEnd,
         updatedAt: new Date(),
