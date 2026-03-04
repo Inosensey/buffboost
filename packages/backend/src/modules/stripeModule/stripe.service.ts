@@ -154,14 +154,26 @@ export class StripeService {
     immediate: boolean = false,
   ) {
     if (immediate) {
-      await this.stripe.subscriptions.cancel(stripeSubscriptionId);
+      const proratedAmount =
+        await this.calculateProratedAmount(stripeSubscriptionId);
 
-      const response = await this.issueProratedRefund(stripeSubscriptionId);
+      const canceledSub =
+        await this.stripe.subscriptions.cancel(stripeSubscriptionId);
 
-      if (response.status) {
-        return { data: response.data, message: response.message };
+      if (proratedAmount > 0) {
+        const refundResponse = await this.issueProratedRefund(
+          stripeSubscriptionId,
+          proratedAmount,
+        );
+        return {
+          data: refundResponse,
+          message: `Subscription canceled with prorated refund of $${proratedAmount / 100}`,
+        };
       } else {
-        return { data: null, message: response.message };
+        return {
+          data: canceledSub,
+          message: 'Subscription canceled immediately (no refund due)',
+        };
       }
     } else {
       const subscription: Stripe.Subscription =
@@ -184,41 +196,10 @@ export class StripeService {
 
   async issueProratedRefund(
     subscriptionId: string,
+    amount: number,
   ): Promise<{ status: boolean; data?: Stripe.Refund; message: string }> {
     try {
-      const subscription = (await this.stripe.subscriptions.retrieve(
-        subscriptionId,
-        { expand: ['latest_invoice'] },
-      )) as Stripe.Subscription;
-
-      const items = subscription.items.data.map((item) => ({
-        id: item.id,
-        price: item.price.id,
-        quantity: 0,
-      }));
-
-      const upcomingPreview = (await this.stripe.invoices.createPreview({
-        customer: subscription.customer as string,
-        subscription: subscriptionId,
-        subscription_details: {
-          items: items,
-          proration_behavior: 'create_prorations',
-        },
-      })) as Stripe.Invoice;
-
-      let proratedAmount = 0;
-      if (upcomingPreview.lines?.data) {
-        for (const line of upcomingPreview.lines.data) {
-          if (
-            line.amount < 0 &&
-            line.parent?.subscription_item_details?.proration === true
-          ) {
-            proratedAmount += Math.abs(line.amount);
-          }
-        }
-      }
-
-      if (proratedAmount === 0) {
+      if (amount === 0) {
         return {
           status: true,
           message: 'No prorated amount to refund',
@@ -226,8 +207,7 @@ export class StripeService {
       }
 
       const invoices = await this.stripe.invoices.list({
-        subscription: subscription.id,
-        customer: subscription.customer as string,
+        subscription: subscriptionId,
         limit: 10,
         status: 'paid',
       });
@@ -255,17 +235,51 @@ export class StripeService {
 
       const refund = await this.stripe.refunds.create({
         payment_intent: paymentIntentId,
-        amount: proratedAmount,
+        amount: amount,
       });
 
       return {
         status: true,
         data: refund,
-        message: `Refund issued: ${refund.id}`,
+        message: `Refund issued: ${refund.id} for ${amount / 100}`,
       };
     } catch (error) {
       throw new Error(`Error issuing prorated refund: ${error.message}`);
     }
+  }
+
+  async calculateProratedAmount(subscriptionId: string): Promise<number> {
+    const subscription =
+      await this.stripe.subscriptions.retrieve(subscriptionId);
+
+    const items = subscription.items.data.map((item) => ({
+      id: item.id,
+      price: item.price.id,
+      quantity: 0,
+    }));
+
+    const upcomingPreview = await this.stripe.invoices.createPreview({
+      customer: subscription.customer as string,
+      subscription: subscriptionId,
+      subscription_details: {
+        items: items,
+        proration_behavior: 'create_prorations',
+      },
+    });
+
+    let proratedAmount = 0;
+    if (upcomingPreview.lines?.data) {
+      for (const line of upcomingPreview.lines.data) {
+        if (
+          line.amount < 0 &&
+          line.parent?.subscription_item_details?.proration
+        ) {
+          proratedAmount += Math.abs(line.amount);
+        }
+      }
+    }
+
+    return proratedAmount;
   }
 
   async getSession(data: verifyPaymentDTO) {
