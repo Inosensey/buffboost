@@ -92,17 +92,105 @@ export class BuffService {
     return updateNewBuff;
   }
 
+  async getActiveBuff(
+    userId: string,
+    buffId: string,
+  ): Promise<ActiveBuffSelectedPayload | null> {
+    return await this.prisma.activeBuff.findUnique({
+      where: {
+        userId_buffId: {
+          userId: userId,
+          buffId: buffId,
+        },
+      },
+      select: {
+        id: true,
+        activatedAt: true,
+        expiresAt: true,
+        isExpired: true,
+        nextDeliveryAt: true,
+        deliveryCount: true,
+        createdAt: true,
+        updatedAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
+  }
+
   async activateBuff(
     userId: string,
     buffId: string,
     subscriptionData: BuffSubscriptionSelectedPayload,
   ): Promise<ActiveBuffSelectedPayload> {
+    const hasActiveBuff = await this.getActiveBuff(userId, buffId);
+
+    if (hasActiveBuff) {
+      return await this.reactivateBuffSubscription(
+        userId,
+        buffId,
+        subscriptionData,
+      );
+    }
+
     return await this.prisma.activeBuff.create({
       data: {
         userId: userId,
         buffId: buffId,
         buffSubscriptionId: subscriptionData.id,
         expiresAt: subscriptionData.currentPeriodEnd,
+      },
+      select: {
+        id: true,
+        activatedAt: true,
+        expiresAt: true,
+        isExpired: true,
+        nextDeliveryAt: true,
+        deliveryCount: true,
+        createdAt: true,
+        updatedAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
+  }
+
+  async reactivateBuffSubscription(
+    userId: string,
+    buffId: string,
+    subscriptionData: BuffSubscriptionSelectedPayload,
+  ): Promise<ActiveBuffSelectedPayload> {
+    return await this.prisma.activeBuff.update({
+      where: {
+        userId_buffId: {
+          userId: userId,
+          buffId: buffId,
+        },
+      },
+      data: {
+        buffSubscriptionId: subscriptionData.id,
+        expiresAt: subscriptionData.currentPeriodEnd,
+        updatedAt: new Date(),
       },
       select: {
         id: true,

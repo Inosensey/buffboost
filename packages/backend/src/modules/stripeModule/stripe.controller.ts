@@ -62,7 +62,6 @@ export class StripeController {
   async handleWebhook(@Req() request: Request) {
     const signature = request.headers['stripe-signature'] as string;
 
-    // Get rawBody that we attached in main.ts
     interface RequestWithRawBody extends Request {
       rawBody: Buffer;
     }
@@ -108,7 +107,6 @@ export class StripeController {
       }
 
       case 'invoice.paid': {
-        // SUBSCRIPTION RENEWAL
         const invoice = event.data.object;
         const subscriptionId = invoice.parent?.subscription_details
           ?.subscription as string;
