@@ -62,7 +62,6 @@ export class StripeController {
   async handleWebhook(@Req() request: Request) {
     const signature = request.headers['stripe-signature'] as string;
 
-    // Get rawBody that we attached in main.ts
     interface RequestWithRawBody extends Request {
       rawBody: Buffer;
     }
@@ -92,14 +91,8 @@ export class StripeController {
             buffId,
             session,
           );
-          console.log('newSubscription', subscription);
 
-          const newActiveBuff = await this.buff.activateBuff(
-            userId,
-            buffId,
-            subscription,
-          );
-          console.log('newActiveBuff', newActiveBuff);
+          await this.buff.activateBuff(userId, buffId, subscription);
         } else if (session.mode === 'payment') {
           const purchasedBuffIds = JSON.parse(
             session.metadata?.purchasedBuffIds || '[]',
@@ -110,7 +103,6 @@ export class StripeController {
       }
 
       case 'invoice.paid': {
-        // SUBSCRIPTION RENEWAL
         const invoice = event.data.object;
         const subscriptionId = invoice.parent?.subscription_details
           ?.subscription as string;
