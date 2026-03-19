@@ -21,6 +21,12 @@ async function bootstrap() {
       },
     }),
   );
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
   app.use(bodyParser.json({ limit: '10mb' }));
   app.use(bodyParser.urlencoded({ extended: true }));
   app.use(cookieParser());
