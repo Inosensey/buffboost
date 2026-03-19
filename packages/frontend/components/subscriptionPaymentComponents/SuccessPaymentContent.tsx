@@ -1,56 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { CheckCircle, Home, ShoppingBag, Sparkles, Calendar, Clock, Repeat } from 'lucide-react';
+import Link from "next/link";
+import {
+  CheckCircle,
+  Home,
+  ShoppingBag,
+  Sparkles,
+  Calendar,
+  Clock,
+  Repeat,
+} from "lucide-react";
+import { dateHelper } from "utils/generalHelper";
 
-export default function SuccessPaymentContent() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session_id');
-  const [subscription, setSubscription] = useState<any>(null);
+interface props {
+  activeBuff: ActiveBuff | null;
+}
 
-  useEffect(() => {
-    const fetchSubscription = async () => {
-      if (!sessionId) return;
-      
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/stripe/subscription-details?session_id=${sessionId}`
-        );
-        const data = await response.json();
-        setSubscription(data.subscription);
-      } catch (error) {
-        console.error('Error fetching subscription:', error);
-      }
-    };
-
-    fetchSubscription();
-  }, [sessionId]);
-
-  const getBuffEmoji = (buffName: string) => {
-    const emojiMap: Record<string, string> = {
-      'Patience': '🧘',
-      'Strength': '💪',
-      'Courage': '🦁',
-      'Wisdom': '🦉',
-      'Charisma': '✨',
-      'Focus': '🎯',
-      'Luck': '🍀',
-      'Creativity': '🎨',
-      'default': '⚡'
-    };
-    return emojiMap[buffName] || emojiMap.default;
-  };
-
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
+export default function SuccessPaymentContent({ activeBuff }: props) {
   return (
     <div className="min-h-screen bg-[#10002B] py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -69,19 +35,19 @@ export default function SuccessPaymentContent() {
           </p>
         </div>
 
-        {subscription && (
+        {activeBuff && (
           <div className="bg-[#240046] rounded-xl border border-[#3C096C] overflow-hidden mb-6">
             <div className="p-4 border-b border-[#3C096C]">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-lg bg-[#5A189A]/10 flex items-center justify-center text-3xl">
-                  {getBuffEmoji(subscription.buff?.name || '')}
+                  {activeBuff.buff.emoji}
                 </div>
                 <div>
                   <h2 className="font-spaceGrotesk text-lg font-bold text-[#C77DFF]">
-                    {subscription.buff?.name || 'Subscription'}
+                    {activeBuff.buff.name || "Subscription"}
                   </h2>
                   <p className="font-inter text-xs text-[#C77DFF]/60">
-                    {subscription.buff?.tagline || 'Recurring boost'}
+                    {activeBuff.buff.tagline || "Recurring boost"}
                   </p>
                 </div>
               </div>
@@ -104,7 +70,7 @@ export default function SuccessPaymentContent() {
                   Next Billing
                 </span>
                 <span className="font-inter text-xs text-[#C77DFF]">
-                  {formatDate(subscription.currentPeriodEnd)}
+                  {dateHelper.formatLongDateWithTime(activeBuff.expiresAt)}
                 </span>
               </div>
 
@@ -114,7 +80,7 @@ export default function SuccessPaymentContent() {
                   Billing Period
                 </span>
                 <span className="font-inter text-xs text-[#C77DFF]">
-                  Monthly
+                  Weekly
                 </span>
               </div>
             </div>
@@ -122,7 +88,7 @@ export default function SuccessPaymentContent() {
             <div className="px-4 pb-4">
               <div className="bg-[#10002B]/50 rounded-lg p-3 border border-[#3C096C]">
                 <p className="font-inter text-xs text-[#C77DFF]/80 italic text-center">
-                  You'll be billed monthly. Cancel anytime from your account settings.
+                  You'll be billed Weekly.
                 </p>
               </div>
             </div>
