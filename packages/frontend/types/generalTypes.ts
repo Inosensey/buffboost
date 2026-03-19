@@ -13,3 +13,19 @@ interface headerInterface {
     description: string;
   };
 }
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string; 
+}
+
+interface validation {
+  validationName?: string;
+  valid: null | boolean;
+  validationMessage: string;
+}
+
+interface formValidation {
+  [key: string]: validation
+}
