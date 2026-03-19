@@ -3,7 +3,7 @@
 // Types
 interface props {
   key: string;
-  buffInfo: BuffInterface;
+  buffInfo: Buff;
 }
 
 const MyBuffsCard = ({ buffInfo }: props) => {

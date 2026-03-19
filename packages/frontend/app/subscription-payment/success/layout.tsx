@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     images: ["/og-subscription-success.jpg"],
   },
 };
-export default function SuccessPaymentLayout({
+export default function SubscriptionSuccessPaymentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

@@ -30,10 +30,14 @@ import { UserService } from './user.service';
 // Types
 import { CreateUserDTO, UpdateUserDto, UserCredentialsDTO } from './user.dto';
 import { AlreadyAuthGuard } from 'src/guards/alreadyAuth.guard';
+import { UserSessionService } from '../userSessionModule/userSession.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userSessionService: UserSessionService,
+  ) {}
 
   @UseGuards(AuthGuard, PermissionsGuard)
   @Get()
@@ -82,12 +86,13 @@ export class UserController {
     response.cookie('token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return ApiResponse.success(
       {
         userId: result.userId,
+        email: result.email,
         userType: result.userType,
       },
       'User signed in successfully',
@@ -110,6 +115,16 @@ export class UserController {
       path: '/',
     });
     return ApiResponse.success(null, 'Signed out successfully');
+  }
+
+  @Get('session/validate')
+  async validateSession(@Req() request: Request) {
+    const token = request.cookies?.token as string;
+    const isValid = await this.userSessionService.validateSession(token);
+    if (isValid) {
+      return ApiResponse.success(true, 'Session is valid');
+    }
+    return ApiResponse.success(false, 'Session is invalid');
   }
 
   @UseGuards(AuthGuard, PermissionsGuard)

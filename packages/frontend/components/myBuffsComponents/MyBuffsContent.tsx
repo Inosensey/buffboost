@@ -3,8 +3,17 @@
 import { useState } from "react";
 
 // Components
-import ActiveBuffCard from "./ActiveBuffCard";
-import BuffTimelineCard from "./BuffTimelineCard";
+import BuffTimelines from "./BuffTimelines";
+import ActiveBuffs from "./ActiveBuffs";
+
+// utils
+import { buffHelper } from "utils/nestJsEndPointHelper";
+
+// Types
+interface props {
+  todayBuffs: purchasedBuff[];
+  historyBuffs: purchasedBuff[];
+}
 
 // Constants
 const headers: headerInterface = {
@@ -19,76 +28,11 @@ const headers: headerInterface = {
       "📜 Your epic buff journey timeline | Relive purchases, and deliveries",
   },
 };
-const activeBuffs: BuffInterface[] = [
-  {
-    name: "Patience",
-    emoji: "🧘",
-    type: "instantBuffs",
-    description: "Stay calm under pressure",
-    tagline: "Zen mode activated",
-  },
-  {
-    name: "Strength",
-    emoji: "💪",
-    type: "instantBuffs",
-    price: 29.99,
-    description: "Feel physically and mentally empowered",
-    tagline: "Unlock your inner powerhouse",
-  },
-  {
-    name: "Courage",
-    emoji: "🦁",
-    type: "instantBuffs",
-    description: "Face fears with bravery",
-    tagline: "Brave heart activated",
-  },
-  {
-    name: "Luck",
-    type: "dailyBlessings",
-    emoji: "🍀",
-    description: "Attract good fortune",
-    tagline: "Fortune favors the boosted",
-  },
-];
-const buffTimeline: BuffInterface[] = [
-  {
-    name: "Wisdom",
-    emoji: "🦉",
-    type: "instantBuffs",
-    price: 29.99,
-    description: "Make smarter decisions",
-    tagline: "Ancient knowledge unlocked",
-  },
-  {
-    name: "Charisma",
-    emoji: "😎",
-    type: "instantBuffs",
-    price: 29.99,
-    description: "Shine in social situations",
-    tagline: "Magnetic personality engaged",
-  },
-  {
-    name: "Focus",
-    emoji: "🎯",
-    type: "instantBuffs",
-    price: 29.99,
-    description: "Concentrate deeply on tasks",
-    tagline: "Laser precision mode",
-  },
-  {
-    name: "Gratitude",
-    type: "dailyBlessings",
-    emoji: "🙏",
-    price: 29.99,
-    description: "Appreciate life's blessings",
-    tagline: "Thankfulness amplified",
-  },
-];
 
-const MyBuffsContent = () => {
+const MyBuffsContent = ({ todayBuffs, historyBuffs }: props) => {
   // States
+  const [buffList, setBuffList] = useState<purchasedBuff[]>(todayBuffs);
   const [activeTab, setActiveTab] = useState("activeBuffs");
-  const [buffList, setBuffList] = useState<BuffInterface[]>(activeBuffs);
 
   return (
     <div className="flex justify-center items-center w-full">
@@ -97,7 +41,7 @@ const MyBuffsContent = () => {
           <div
             onClick={() => {
               setActiveTab("activeBuffs");
-              setBuffList(activeBuffs);
+              setBuffList(todayBuffs);
             }}
             className={`p-3 cursor-pointer ${activeTab === "activeBuffs" ? "bg-Foreground text-SoftBackground" : "bg-Background text-Text hover:bg-Foreground hover:text-SoftBackground"} transition duration-200`}
           >
@@ -106,7 +50,7 @@ const MyBuffsContent = () => {
           <div
             onClick={() => {
               setActiveTab("buffTimeline");
-              setBuffList(buffTimeline);
+              setBuffList(historyBuffs);
             }}
             className={`p-3 cursor-pointer ${activeTab === "buffTimeline" ? "bg-Foreground text-SoftBackground" : "bg-Background text-Text hover:bg-Foreground hover:text-SoftBackground"} transition duration-200`}
           >
@@ -122,13 +66,11 @@ const MyBuffsContent = () => {
               {headers[activeTab]?.description}
             </p>
           </div>
-          <div className="mt-2 py-1 max-h-[85%] flex flex-wrap gap-3 phone:justify-center desktop:justify-start">
-            {buffList.map((buff: BuffInterface) =>
-              activeTab === "activeBuffs" ? (
-                <ActiveBuffCard key={buff.name} buffInfo={buff} />
-              ) : (
-                <BuffTimelineCard key={buff.name} buffInfo={buff} />
-              ),
+          <div className="mt-2 py-1 h-[85%]">
+            {activeTab === "activeBuffs" ? (
+              <ActiveBuffs todayBuffs={buffList} />
+            ) : (
+              <BuffTimelines purchasedBuff={buffList} />
             )}
           </div>
         </div>

@@ -3,7 +3,7 @@
 import VerifyPaymentContent from "@/components/subscriptionPaymentComponents/VerifyPaymentContent";
 import { Suspense } from "react";
 
-const VerifyPaymentPage = async () => {
+const SubscriptionVerifyPaymentPage = async () => {
   return (
     <Suspense fallback={<div>Loading payment details...</div>}>
       <div className="flex items-center justify-center font-sans">
@@ -13,4 +13,4 @@ const VerifyPaymentPage = async () => {
   );
 };
 
-export default VerifyPaymentPage;
+export default SubscriptionVerifyPaymentPage;

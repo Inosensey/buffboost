@@ -3,7 +3,7 @@
 import CancelPaymentContent from "@/components/subscriptionPaymentComponents/CancelPaymentContent";
 import { Suspense } from "react";
 
-const CancelPaymentPage = async () => {
+const SubscriptionCancelPaymentPage = async () => {
   return (
     <Suspense fallback={<div>Loading payment details...</div>}>
       <div className="flex items-center justify-center font-sans">
@@ -13,4 +13,4 @@ const CancelPaymentPage = async () => {
   );
 };
 
-export default CancelPaymentPage;
+export default SubscriptionCancelPaymentPage;

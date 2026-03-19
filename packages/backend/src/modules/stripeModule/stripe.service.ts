@@ -142,7 +142,7 @@ export class StripeService {
         userId: data.userId,
         buffId: data.items[0].buffId,
       },
-      success_url: `${this.configService.get('FRONTEND_URL')}/subscription-payment/success?subscription_id={SUBSCRIPTION_ID}`,
+      success_url: `${this.configService.get('FRONTEND_URL')}/subscription-payment/success?subscription_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.configService.get('FRONTEND_URL')}/subscription-payment/cancel`,
     });
 

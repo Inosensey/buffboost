@@ -19,7 +19,7 @@ const Overlay = ({ children, clickEvent }: props) => {
 
   return (
     <motion.div
-    onClick={clickEvent}
+      onClick={clickEvent}
       variants={overlayVariants}
       initial="hidden"
       animate="show"

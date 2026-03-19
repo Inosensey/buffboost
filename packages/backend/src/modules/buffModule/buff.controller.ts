@@ -33,6 +33,54 @@ export class BuffController {
   }
 
   @UseGuards(AuthGuard, PermissionsGuard)
+  @Get('/purchased-buffs/:paymentId')
+  async getPurchasedBuffs(@Param('paymentId') paymentId: string) {
+    const buff = await this.buffService.getPurchasedBuffsByPaymentId(paymentId);
+    return ApiResponse.success(buff, 'Purchased Buffs retrieved successfully');
+  }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Get('/purchased-buffs-today/:userId')
+  async getCurrentPurchasedBuffsToday(@Param('userId') userId: string) {
+    const buff = await this.buffService.getCurrentPurchasedBuffsToday(userId);
+    return ApiResponse.success(
+      buff,
+      'Todays Purchased Buffs retrieved successfully',
+    );
+  }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Get('/purchased-buffs-history/:userId')
+  async getCurrentPurchasedBuffsHistory(@Param('userId') userId: string) {
+    const buff = await this.buffService.getCurrentPurchasedBuffsHistory(userId);
+    return ApiResponse.success(
+      buff,
+      'Purchased Buffs History retrieved successfully',
+    );
+  }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Get('/buff-subscription/:sessionId')
+  async getBuffSubscriptionFromSession(@Param('sessionId') sessionId: string) {
+    const buff =
+      await this.buffService.getBuffSubscriptionFromSession(sessionId);
+    return ApiResponse.success(
+      buff,
+      'Buff subscription retrieved successfully',
+    );
+  }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Get('/active-buff/:userId')
+  async getCurrentActiveBuff(@Param('userId') userId: string) {
+    const buff = await this.buffService.getUserActiveBuff(userId);
+    return ApiResponse.success(
+      buff,
+      'Current Active Buff retrieved successfully',
+    );
+  }
+
+  @UseGuards(AuthGuard, PermissionsGuard)
   @Post('/create')
   async createBuff(@Body() data: MutateBuffDto) {
     const buff = await this.buffService.createBuff(data);

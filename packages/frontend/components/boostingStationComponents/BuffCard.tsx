@@ -3,15 +3,17 @@
 // Types
 interface props {
   key: string;
-  buffInfo: BuffInterface;
+  buffInfo: Buff;
+  isPurchased: boolean;
   isSelected: boolean;
-  onSelect: (buffName: string) => void;
+  onSelect: (buffName: Buff) => void;
   maxSelections: number;
   currentSelections: number;
 }
 
 const BuffCard = ({
   buffInfo,
+  isPurchased,
   currentSelections,
   isSelected,
   onSelect,
@@ -38,18 +40,18 @@ const BuffCard = ({
         group font-spaceGrotesk flex flex-col items-center
         h-[320px] phone:w-full mdphone:w-[390px] mdtablet:w-[300px] laptop:w-[280px] desktop:w-[300px] rounded-xl p-5 
         transition-all duration-300 ease-out 
-        border-2 ${isSelected ? "border-Success" : typeColors[buffInfo.type].border}
+        border-2 ${isSelected || isPurchased ? "border-Success" : typeColors[buffInfo.type].border}
         transform-gpu
         will-change-transform, shadow, border-color
         relative
         overflow-hidden
         ${
-          isSelected
+          isSelected || isPurchased
             ? "bg-gradient-to-br from-SuccessGlow/10 via-SuccessGlow/5 to-transparent"
             : "bg-Background"
         }
         ${
-          !isSelected &&
+          !isSelected || isPurchased &&
           `
           hover:shadow-[0_12px_40px_rgba(90,24,154,0.3)]
           hover:scale-[1.01]
@@ -57,16 +59,18 @@ const BuffCard = ({
         `
         }
         ${
-          isSelected &&
-          `
+          
+          (isPurchased || isSelected &&
+            `
           shadow-glow-green
           animate-pulse-green
           border-Success
           bg-Background
-        `
+        `)
         }
         ${
           !isSelected &&
+          !isPurchased &&
           currentSelections >= maxSelections &&
           `
           opacity-60
@@ -78,11 +82,11 @@ const BuffCard = ({
         }
     `}
     >
-      {isSelected && (
+      {isSelected && !isPurchased && (
         <div className="absolute top-3 z-10 w-full">
           <div className="flex justify-between w-full px-3">
             <div
-              onClick={() => onSelect(buffInfo.name)}
+              onClick={() => onSelect(buffInfo)}
               className="w-8 h-8 bg-Danger rounded-full flex items-center justify-center cursor-pointer"
             >
               <span className="text-white text-sm font-bold">X</span>
@@ -110,7 +114,7 @@ const BuffCard = ({
         <h3
           className={`
           font-spaceGrotesk text-lg font-bold mb-1
-          ${isSelected ? "text-SuccessLight" : "text-Text group-hover:text-SoftBackground"}
+          ${isSelected || isPurchased ? "text-SuccessLight" : "text-Text group-hover:text-SoftBackground"}
         `}
         >
           {buffInfo.name}
@@ -118,7 +122,7 @@ const BuffCard = ({
         <p
           className={`
           font-inter text-sm mb-2 line-clamp-2
-          ${isSelected ? "text-SuccessLight/80" : "text-Text/80"}
+          ${isSelected || isPurchased ? "text-SuccessLight/80" : "text-Text/80"}
         `}
         >
           {buffInfo.description}
@@ -128,7 +132,7 @@ const BuffCard = ({
             className={`
             font-inter text-xs font-medium px-2 py-1 rounded-full
             ${
-              isSelected
+              isSelected || isPurchased
                 ? "bg-Success/20 text-SuccessLight border border-Success/30"
                 : "bg-Primary/10 text-Primary"
             }
@@ -144,7 +148,7 @@ const BuffCard = ({
           <div
             className={`
             text-xl font-bold
-            ${isSelected ? "text-SuccessLight" : "text-Text"}
+            ${isSelected || isPurchased ? "text-SuccessLight" : "text-Text"}
           `}
           >
             ${buffInfo.price === 0 ? "0.00" : buffInfo.price!.toFixed(2)}
@@ -153,7 +157,7 @@ const BuffCard = ({
             className={`
             text-xs px-2 py-1 rounded font-medium
             ${
-              isSelected
+              isSelected || isPurchased
                 ? "bg-Success/20 text-SuccessLight"
                 : "bg-Foreground text-SoftBackground"
             }
@@ -165,7 +169,7 @@ const BuffCard = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onSelect(buffInfo.name);
+            onSelect(buffInfo);
           }}
           className={`
             w-full py-2 rounded-lg font-semibold text-sm
@@ -173,7 +177,7 @@ const BuffCard = ({
             transform active:scale-95
             disabled:opacity-50 disabled:cursor-not-allowed
             ${
-              isSelected
+              isSelected || isPurchased
                 ? "bg-gradient-to-r from-Success to-SuccessDark text-white shadow-glow-green"
                 : currentSelections >= maxSelections
                   ? "bg-gray-600 text-gray-300 cursor-not-allowed"
@@ -181,21 +185,24 @@ const BuffCard = ({
             }
         `}
         >
-          {isSelected
-            ? "✓ Selected"
-            : currentSelections >= maxSelections
-              ? `Max ${maxSelections} reached`
-              : buffInfo.type === "instantBuffs"
-                ? "Select Boost"
-                : "Subscribe"}
+          {isPurchased
+            ? "✓ Purchased"
+            : isSelected
+              ? "✓ Selected"
+              : currentSelections >= maxSelections
+                ? `Max ${maxSelections} reached`
+                : buffInfo.type === "instantBuffs"
+                  ? "Select Boost"
+                  : "Subscribe"}
         </button>
       </div>
-      {isSelected && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-br from-SuccessGlow/5 via-transparent to-transparent rounded-xl" />
-          <div className="absolute -inset-2 bg-gradient-to-r from-SuccessGlow/0 via-SuccessGlow/10 to-SuccessGlow/0 blur-xl rounded-xl" />
-        </>
-      )}
+      {isSelected ||
+        (isPurchased && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-SuccessGlow/5 via-transparent to-transparent rounded-xl" />
+            <div className="absolute -inset-2 bg-gradient-to-r from-SuccessGlow/0 via-SuccessGlow/10 to-SuccessGlow/0 blur-xl rounded-xl" />
+          </>
+        ))}
     </div>
   );
 };

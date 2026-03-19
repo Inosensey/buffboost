@@ -10,6 +10,9 @@ import SolarLogoutOutline from "@/icons/SolarLogoutOutline";
 
 import Overlay from "./Overlay";
 import Link from "next/link";
+import LoadingPopUp from "./LoadingPopUp";
+import { RotatingSquare } from "react-loader-spinner";
+import { signOut } from "@/actions/authActions";
 
 const SideBar = () => {
   // States
@@ -18,6 +21,8 @@ const SideBar = () => {
   const [scrollDirection, setScrollDirection] = useState<string>("Steady");
   const [showNavBar, setShowNavBar] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
+  const [isLoggingOut, setIsLoggingOut] = useState<boolean>(false);
 
   // useEffect
   useEffect(() => {
@@ -138,11 +143,11 @@ const SideBar = () => {
               animate={ulAnimation}
               className="flex flex-col gap-2 px-4 mt-8 text-lg"
             >
-              <motion.div
-                variants={liVariant}
-                animate={liAnimation}
-              >
-                <Link href="/boosting-station" className="flex items-center gap-1 text-Text hover:underline">
+              <motion.div variants={liVariant} animate={liAnimation}>
+                <Link
+                  href="/boosting-station"
+                  className="flex items-center gap-1 text-Text hover:underline"
+                >
                   <p className="font-oxanium cursor-pointer font-bold">
                     Boosting Station
                   </p>
@@ -153,10 +158,7 @@ const SideBar = () => {
                   />
                 </Link>
               </motion.div>
-              <motion.div
-                variants={liVariant}
-                animate={liAnimation}
-              >
+              <motion.div variants={liVariant} animate={liAnimation}>
                 <Link
                   className="flex items-center gap-1 text-Text hover:underline"
                   href="/my-buffs"
@@ -172,8 +174,19 @@ const SideBar = () => {
                 </Link>
               </motion.div>
             </motion.div>
-            <div className="absolute bottom-5 left-0 right-0 flex items-center justify-center text-Text hover:underline text-lg gap-2 mt-6">
-              <Link className="flex items-center gap-1" href="/">
+            <div
+              onClick={() => {
+                setMessage("Signing you out... 🔄 See you next time! 👋");
+                setIsLoggingOut(true);
+                const timer = setTimeout(() => {
+                  signOut();
+                }, 1500);
+
+                return () => clearTimeout(timer);
+              }}
+              className="absolute bottom-5 left-0 right-0 flex items-center justify-center text-Text hover:underline text-lg gap-2 mt-6"
+            >
+              <div className="flex items-center gap-1">
                 <p className="font-oxanium cursor-pointer font-bold">
                   Sign Out
                 </p>
@@ -182,7 +195,7 @@ const SideBar = () => {
                   width="1.4em"
                   height="1.4em"
                 />
-              </Link>
+              </div>
             </div>
           </motion.nav>
         </Overlay>
@@ -190,9 +203,7 @@ const SideBar = () => {
 
       {/* Burger Icon */}
       <div
-        onClick={() =>
-          animateSidebar()
-        }
+        onClick={() => animateSidebar()}
         className={`rounded-3xl items-center py-2 right-2 top-[91%] w-12 phone:flex mdphone:hidden flex-col gap-2 z-30 cursor-pointer ease-in-out duration-300 fixed ${
           scrollDirection === "Steady"
             ? "top-0"
@@ -219,6 +230,21 @@ const SideBar = () => {
           } ease-in-out duration-100 w-[75%] border-2 border-Secondary`}
         ></div>
       </div>
+      <LoadingPopUp
+        isLoading={isLoggingOut}
+        message={message}
+        LoadingAnimationIcon={
+          <RotatingSquare
+            visible={true}
+            height="60"
+            width="60"
+            ariaLabel="rotating-square-loading"
+            wrapperStyle={{}}
+            color="#7B2CBF"
+            wrapperClass=""
+          />
+        }
+      />
     </>
   );
 };

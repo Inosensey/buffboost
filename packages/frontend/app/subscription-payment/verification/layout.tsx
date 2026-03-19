@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function VerifyPaymentLayout({
+export default function SubscriptionVerifyPaymentLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
