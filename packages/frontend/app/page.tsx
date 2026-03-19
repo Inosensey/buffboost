@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import StreamlineLogosFacebookGamingLogoBlock from "@/icons/StreamlineLogosFacebookGamingLogoBlock";
+import Link from "next/link";
 
 export default async function Home() {
   return (
-    <div className="flex items-center justify-center font-sans dark:bg-black">
+    <div className="flex items-center justify-center font-sans dark:bg-black h-screen">
       <main className="flex w-full flex-col items-center justify-center dark:bg-black">
         <div className="phone:w-[95%] phone:my-2 laptop:my-0 laptop:w-7/12 flex flex-col items-center justify-center gap-2 rounded-md p-2 shadow-[0_0_0_1px_rgba(90,24,154,0.7),0_10px_30px_rgba(90,24,154,0.45)]">
           <div className="font-spaceGrotesk mt-1 flex flex-col justify-center items-center">
@@ -126,10 +127,12 @@ export default async function Home() {
             </div>
           </div>
           <div>
+            <Link href={"/sign-in"}>
             <button className="flex items-center gap-1 bg-Secondary rounded-md py-2 px-3 cursor-pointer font-semibold font-oxanium hover:scale-[1.1] active:scale-[0.9] active:bg-Background transition-all duration-200">
               Start Your Buff Journey
               <Sparkles className="w-5 h-5" />
             </button>
+            </Link>
           </div>
         </div>
       </main>
