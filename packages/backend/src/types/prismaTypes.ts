@@ -38,6 +38,8 @@ export type BuffTypeSelectedPayload = Prisma.BuffGetPayload<{
     durationHours: true;
     isRecurring: true;
     recurrence: true;
+    stripeProductId: true;
+    stripePriceId: true;
     createdAt: true;
     updatedAt: true;
   };
