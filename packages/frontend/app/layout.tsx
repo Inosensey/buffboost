@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import NextTopLoader from 'nextjs-toploader';
 import { Space_Grotesk, Inter, Oxanium } from "next/font/google";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${oxanium.variable} antialiased max-w-[1920px] mx-auto`}
       >
+        <NextTopLoader color="#7B2CBF" showSpinner={true} />
         {children}
       </body>
     </html>
