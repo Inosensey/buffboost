@@ -113,9 +113,12 @@ export class UserService {
     });
   }
 
-  async userSignIn(
-    credentials: UserCredentialsDTO,
-  ): Promise<{ token: string; userId: string; userType: string }> {
+  async userSignIn(credentials: UserCredentialsDTO): Promise<{
+    token: string;
+    userId: string;
+    email: string;
+    userType: string;
+  }> {
     const user = await this.prisma.user.findUnique({
       where: { email: credentials.email },
       select: {
@@ -155,6 +158,7 @@ export class UserService {
     return {
       token,
       userId: user.id,
+      email: user.email,
       userType: user.userType.typeName,
     };
   }
