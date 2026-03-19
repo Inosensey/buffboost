@@ -84,6 +84,8 @@ export class BuffService {
         durationHours: true,
         isRecurring: true,
         recurrence: true,
+        stripeProductId: true,
+        stripePriceId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -92,7 +94,37 @@ export class BuffService {
     return updateNewBuff;
   }
 
-  async getActiveBuff(
+  async getUserActiveBuff(
+    userId: string,
+  ): Promise<ActiveBuffSelectedPayload | null> {
+    return await this.prisma.activeBuff.findFirst({
+      where: { userId: userId, isExpired: false },
+      select: {
+        id: true,
+        activatedAt: true,
+        expiresAt: true,
+        isExpired: true,
+        nextDeliveryAt: true,
+        deliveryCount: true,
+        createdAt: true,
+        updatedAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
+  }
+
+  async checkIfUserHasActiveBuff(
     userId: string,
     buffId: string,
   ): Promise<ActiveBuffSelectedPayload | null> {
@@ -133,7 +165,7 @@ export class BuffService {
     buffId: string,
     subscriptionData: BuffSubscriptionSelectedPayload,
   ): Promise<ActiveBuffSelectedPayload> {
-    const hasActiveBuff = await this.getActiveBuff(userId, buffId);
+    const hasActiveBuff = await this.checkIfUserHasActiveBuff(userId, buffId);
 
     if (hasActiveBuff) {
       return await this.reactivateBuffSubscription(
@@ -389,6 +421,7 @@ export class BuffService {
         failureReason: '',
         isActive: false,
         recurrenceCount: 0,
+        endDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
         nextDeliveryAt: buffInfo.isRecurring ? expiresAt : null,
       },
       select: {
@@ -513,6 +546,8 @@ export class BuffService {
         durationHours: true,
         isRecurring: true,
         recurrence: true,
+        stripeProductId: true,
+        stripePriceId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -572,6 +607,8 @@ export class BuffService {
         durationHours: true,
         isRecurring: true,
         recurrence: true,
+        stripeProductId: true,
+        stripePriceId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -593,13 +630,101 @@ export class BuffService {
         durationHours: true,
         isRecurring: true,
         recurrence: true,
+        stripeProductId: true,
+        stripePriceId: true,
         createdAt: true,
         updatedAt: true,
       },
     });
   }
 
-  async getPurchasedBuffByPaymentId(
+  async getCurrentPurchasedBuffsToday(
+    userId: string,
+  ): Promise<PurchasedBuffSelectedPayload[]> {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    return this.prisma.purchasedBuff.findMany({
+      where: {
+        userId,
+        AND: [
+          { startDate: { lte: endOfDay } },
+          { endDate: { gte: startOfDay } },
+        ],
+      },
+      select: {
+        id: true,
+        userId: true,
+        buffId: true,
+        paymentId: true,
+        amount: true,
+        currency: true,
+        gateway: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        isActive: true,
+        recurrenceCount: true,
+        nextDeliveryAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getCurrentPurchasedBuffsHistory(
+    userId: string,
+  ): Promise<PurchasedBuffSelectedPayload[]> {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    return this.prisma.purchasedBuff.findMany({
+      where: {
+        userId,
+        createdAt: {
+          lt: startOfDay,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        buffId: true,
+        paymentId: true,
+        amount: true,
+        currency: true,
+        gateway: true,
+        status: true,
+        startDate: true,
+        endDate: true,
+        isActive: true,
+        recurrenceCount: true,
+        nextDeliveryAt: true,
+        buff: {
+          select: {
+            id: true,
+            name: true,
+            emoji: true,
+            type: true,
+            description: true,
+            tagline: true,
+            price: true,
+            category: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getPurchasedBuffsByPaymentId(
     paymentId: string,
   ): Promise<PurchasedBuffSelectedPayload[]> {
     return await this.prisma.purchasedBuff.findMany({
@@ -634,7 +759,31 @@ export class BuffService {
     });
   }
 
-  async getBuffSubscriptionByStripeSubId(stripeSubId: string) {
+  async getBuffSubscriptionFromSession(
+    sessionId: string,
+  ): Promise<BuffSubscriptionSelectedPayload | { message: string }> {
+    // Retrieve the checkout session
+    const session =
+      await this.stripeClient.checkout.sessions.retrieve(sessionId);
+
+    // Get the subscription ID from the session
+    const subscriptionId = session.subscription as string;
+
+    if (!subscriptionId) {
+      return {
+        message: 'No subscription found for this session',
+      };
+    }
+
+    const buffSubscription =
+      await this.getBuffSubscriptionByStripeSubId(subscriptionId);
+
+    return buffSubscription;
+  }
+
+  async getBuffSubscriptionByStripeSubId(
+    stripeSubId: string,
+  ): Promise<BuffSubscriptionSelectedPayload> {
     return await this.prisma.buffSubscription.findUniqueOrThrow({
       where: { stripeSubscriptionId: stripeSubId },
       select: {
