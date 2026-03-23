@@ -40,6 +40,8 @@ const BoostingStationContent = ({
   const [toggleCheckout, setToggleCheckout] = useState<boolean>(false);
   const [totalCost, setTotalCost] = useState<number>(0);
 
+  console.log("currentActiveBuff", currentActiveBuff)
+  
   // event functions
   const handleSelectBuffs = (buff: Buff) => {
     if (selectedBuffs.length === 0) {
