@@ -19,7 +19,7 @@ const DailyBlessings = ({ buffList, currentActiveBuff, selectedBuffs, handleSele
       {buffList.map((buff: Buff) => (
         <BuffCard
           key={buff.id}
-          isPurchased={currentActiveBuff
+          isPurchased={currentActiveBuff?.buff.id === buff.id 
               ? true
               : false
           }
