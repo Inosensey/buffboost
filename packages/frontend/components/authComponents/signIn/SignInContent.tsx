@@ -51,7 +51,7 @@ const SignInContent = () => {
     useState<credentials>(credentialsInitial);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitMessage, setSubmitMessage] = useState<string>("");
-  const [signInFailedMessage, setSignInFailedMessage] = useState<string>("");
+  const [signInFailedMessage, setSignInFailedMessage] = useState<string | null>(null);
   const [validation, setValidation] = useState<validation>({
     valid: null,
     validationMessage: "",
@@ -90,7 +90,7 @@ const SignInContent = () => {
 
   // useEffect
   useEffect(() => {
-    if (formState.success !== null) {
+    if (formState.data !== null) {
       console.log(formState);
       if (formState.success) {
         setSubmitMessage("✨ Buff activated! Redirecting to your dashboard");
@@ -155,7 +155,7 @@ const SignInContent = () => {
                   haveLabelHTML={true}
                 />
               </div>
-              {signInFailedMessage !== "" && (
+              {signInFailedMessage !== "" && signInFailedMessage && (
                 <span className="text-[0.75rem] text-red-500 font-bold font-dmSans text-center">
                   {signInFailedMessage}
                 </span>

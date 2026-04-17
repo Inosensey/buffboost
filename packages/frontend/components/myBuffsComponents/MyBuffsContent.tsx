@@ -12,6 +12,7 @@ import { buffHelper } from "utils/nestJsEndPointHelper";
 // Types
 interface props {
   todayBuffs: purchasedBuff[];
+  buffSubscription: ActiveBuff | null;
   historyBuffs: purchasedBuff[];
 }
 
@@ -29,7 +30,7 @@ const headers: headerInterface = {
   },
 };
 
-const MyBuffsContent = ({ todayBuffs, historyBuffs }: props) => {
+const MyBuffsContent = ({ todayBuffs, historyBuffs, buffSubscription }: props) => {
   // States
   const [buffList, setBuffList] = useState<purchasedBuff[]>(todayBuffs);
   const [activeTab, setActiveTab] = useState("activeBuffs");
@@ -68,7 +69,7 @@ const MyBuffsContent = ({ todayBuffs, historyBuffs }: props) => {
           </div>
           <div className="mt-2 py-1 h-[85%]">
             {activeTab === "activeBuffs" ? (
-              <ActiveBuffs todayBuffs={buffList} />
+              <ActiveBuffs todayBuffs={buffList} buffSubscription={buffSubscription} />
             ) : (
               <BuffTimelines purchasedBuff={buffList} />
             )}
