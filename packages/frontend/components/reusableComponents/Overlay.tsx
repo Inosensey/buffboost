@@ -2,7 +2,7 @@ import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
 
 interface props {
-  clickEvent: () => void;
+  clickEvent?: () => void;
   children?: ReactNode;
 }
 
