@@ -62,7 +62,6 @@ class NestJsEndpoints {
     options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const isServer = typeof window === "undefined";
-
     const response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers: {
@@ -86,34 +85,46 @@ class NestJsEndpoints {
   buffsApi = {
     getAll: async (): Promise<ApiResponse<Buff[]>> => {
       await this.initFromCookies();
-      return this.request("/buffs");
+      return this.request("/buffs", { next: { tags: ["buffs"] } });
     },
     getPurchasedBuffs: async (
       sessionId: string,
     ): Promise<ApiResponse<purchasedBuff[]>> => {
       await this.initFromCookies();
-      return this.request(`/buffs/purchased-buffs/${sessionId}`);
+      return this.request(`/buffs/purchased-buffs/${sessionId}`, {
+        next: { tags: ["purchasedBuffs", sessionId] },
+      });
     },
     getCurrentPurchasedBuffsToday: async (): Promise<
       ApiResponse<purchasedBuff[]>
     > => {
       await this.initFromCookies();
-      return this.request(`/buffs/purchased-buffs-today/${this.user_id}`);
+      return this.request(`/buffs/purchased-buffs-today/${this.user_id}`, {
+        next: { tags: ["purchasedBuffsToday", this.user_id!] },
+      });
     },
     getCurrentPurchasedBuffsHistory: async (): Promise<
       ApiResponse<purchasedBuff[]>
     > => {
       await this.initFromCookies();
-      return this.request(`/buffs/purchased-buffs-history/${this.user_id}`);
+      return this.request(`/buffs/purchased-buffs-history/${this.user_id}`, {
+        next: { tags: ["purchasedBuffsHistory", this.user_id!] },
+      });
     },
     getCurrentActiveBuff: async (): Promise<ApiResponse<ActiveBuff | null>> => {
       await this.initFromCookies();
-      return this.request(`/buffs/active-buff/${this.user_id}`);
+      return this.request(`/buffs/active-buff/${this.user_id}`, {
+        next: { tags: ["activeBuff", this.user_id!] },
+      });
     },
-    getCurrentActiveBuffBySessionId: async (sessionId: string): Promise<ApiResponse<ActiveBuff | null>> => {
+    getCurrentActiveBuffBySessionId: async (
+      sessionId: string,
+    ): Promise<ApiResponse<ActiveBuff | null>> => {
       await this.initFromCookies();
-      return this.request(`/buffs/buff-subscription/${sessionId}`);
-    }
+      return this.request(`/buffs/buff-subscription/${sessionId}`, {
+        next: { tags: ["buffSubscription", sessionId] },
+      });
+    },
   };
 
   // USERS API
@@ -146,7 +157,8 @@ class NestJsEndpoints {
         body: JSON.stringify(data),
       });
 
-      if(response.success && response.data) await this.setUserData(response.data.userId, response.data.email);
+      if (response.success && response.data)
+        await this.setUserData(response.data.userId, response.data.email);
 
       return response;
     },
@@ -193,6 +205,15 @@ class NestJsEndpoints {
       return this.request(`/stripe/verify-payment`, {
         method: "POST",
         body: JSON.stringify({ sessionId }),
+      });
+    },
+    cancelSubscription: async (
+      stripeSubscriptionId: string,
+      immediate: boolean,
+    ): Promise<ApiResponse<any>> => {
+      return this.request(`/stripe/cancel-subscription`, {
+        method: "POST",
+        body: JSON.stringify({ stripeSubscriptionId, immediate }),
       });
     },
   };
