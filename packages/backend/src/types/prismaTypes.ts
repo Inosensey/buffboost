@@ -55,6 +55,11 @@ export type ActiveBuffSelectedPayload = Prisma.ActiveBuffGetPayload<{
     deliveryCount: true;
     createdAt: true;
     updatedAt: true;
+    buffSubscription: {
+      select: {
+        stripeSubscriptionId: true;
+      };
+    };
     buff: {
       select: {
         id: true;
