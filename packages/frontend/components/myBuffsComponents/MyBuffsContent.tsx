@@ -69,7 +69,7 @@ const MyBuffsContent = ({ todayBuffs, historyBuffs, buffSubscription }: props) =
           </div>
           <div className="mt-2 py-1 h-[85%]">
             {activeTab === "activeBuffs" ? (
-              <ActiveBuffs todayBuffs={buffList} buffSubscription={buffSubscription} />
+              <ActiveBuffs todayBuffs={buffList} dailyBlessing={buffSubscription} />
             ) : (
               <BuffTimelines purchasedBuff={buffList} />
             )}

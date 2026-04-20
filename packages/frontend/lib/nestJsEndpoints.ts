@@ -211,6 +211,7 @@ class NestJsEndpoints {
       stripeSubscriptionId: string,
       immediate: boolean,
     ): Promise<ApiResponse<any>> => {
+      await this.initFromCookies();
       return this.request(`/stripe/cancel-subscription`, {
         method: "POST",
         body: JSON.stringify({ stripeSubscriptionId, immediate }),

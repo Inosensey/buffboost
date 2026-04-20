@@ -60,17 +60,27 @@ export const cancelSubscription = async (
   prevState: ApiResponse<any | null>,
   formData: FormData,
 ): Promise<ApiResponse<any | null>> => {
-  const cookieStore = await cookies();
-  try {
-    const userId = cookieStore.get("user_id")?.value;
+  const stripeSubscriptionId = formData.get("stripeSubscriptionId") as string;  
+  const immediate = formData.get("immediate") as string === "true" ? true : false;
 
-    console.log(userId);
-    // revalidateTag("")
-    return {
-      success: true,
-      data: null,
-      message: ``,
-    };
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("user_id")?.value;
+
+  try {
+
+    const response = await nestJsEndpoints.stripesApi.cancelSubscription(stripeSubscriptionId, immediate);
+    
+    if (!response.success) {
+      return {
+        success: false,
+        data: null,
+        message: `Failed to cancel subscription: ${response.message}`,
+      };
+    }
+
+    updateTag(`activeBuff-${userId}`);
+
+    return response;
   } catch (error) {
     console.log(error);
     const errorMessage: string =

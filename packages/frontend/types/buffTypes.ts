@@ -26,6 +26,9 @@ interface ActiveBuff {
     createdAt: string;
     updatedAt: string;
     buff: Buff
+    buffSubscription: {
+        stripeSubscriptionId: string,
+    },
 }
 
 interface purchasedBuff {
