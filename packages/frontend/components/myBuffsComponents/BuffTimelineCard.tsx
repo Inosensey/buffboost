@@ -11,9 +11,10 @@ import CancelPopUp from "./CancelPopUp";
 interface props {
   key: string;
   buffInfo: Buff;
+  stripeSubscriptionId: string;
 }
 
-const BuffTimelineCard = ({ buffInfo }: props) => {
+const BuffTimelineCard = ({ buffInfo, stripeSubscriptionId }: props) => {
   // State
   const [toggleCancelPopup, setToggleCancelPopup] = useState(false);
 
@@ -49,7 +50,7 @@ const BuffTimelineCard = ({ buffInfo }: props) => {
 
       <AnimatePresence initial={false} mode="wait" onExitComplete={() => null}>
         {toggleCancelPopup && (
-          <CancelPopUp stripeSubscriptionId={buffInfo.id} setToggleCancelPopup={setToggleCancelPopup} />
+          <CancelPopUp stripeSubscriptionId={stripeSubscriptionId} setToggleCancelPopup={setToggleCancelPopup} />
         )}
       </AnimatePresence>
     </>
