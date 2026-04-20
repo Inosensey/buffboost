@@ -9,10 +9,10 @@ import BuffTimelineCard from "./BuffTimelineCard";
 
 interface props {
   todayBuffs: purchasedBuff[];
-  buffSubscription: ActiveBuff | null;
+  dailyBlessing: ActiveBuff | null;
 }
 
-const ActiveBuffs = ({ todayBuffs, buffSubscription }: props) => {
+const ActiveBuffs = ({ todayBuffs, dailyBlessing }: props) => {
   return (
     <>
       <div className="h-full flex flex-col">
@@ -36,7 +36,7 @@ const ActiveBuffs = ({ todayBuffs, buffSubscription }: props) => {
               </div>
             </div>
           )}
-          {buffSubscription && (
+          {dailyBlessing && (
             <div className="flex flex-col gap-2">
               <div
                 className={`p-1 px-2 cursor-pointer bg-Foreground text-SoftBackground w-max`}
@@ -47,14 +47,15 @@ const ActiveBuffs = ({ todayBuffs, buffSubscription }: props) => {
               </div>
               <div className="flex flex-wrap gap-3 phone:justify-center desktop:justify-start overflow-auto">
                 <BuffTimelineCard
-                  key={buffSubscription.id}
-                  buffInfo={buffSubscription.buff}
+                  key={dailyBlessing.id}
+                  buffInfo={dailyBlessing.buff}
+                  stripeSubscriptionId={dailyBlessing.buffSubscription.stripeSubscriptionId}
                 />
               </div>
             </div>
           )}
         </div>
-        {todayBuffs.length === 0 && !buffSubscription && (
+        {todayBuffs.length === 0 && !dailyBlessing && (
           <div className="h-full flex flex-col items-center justify-center text-center p-8">
             <div className="w-20 h-20 bg-Foreground rounded-full flex items-center justify-center mb-4 border border-Divider">
               <Package className="w-10 h-10 text-Text/30" />
