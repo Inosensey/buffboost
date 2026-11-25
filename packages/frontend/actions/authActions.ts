@@ -46,7 +46,7 @@ export const signUp = async (
     email,
     username,
     password,
-    userTypeId: "64a41e8b-1249-460e-b231-53398609491f",
+    userTypeId: "adef64ec-0658-43d6-8b85-4bf91d3d3aa6",
   };
 
   try {
